@@ -232,11 +232,12 @@ The detail button at the top right switches the mini card to the full card's con
 
 ### Camera
 
-The camera section with the three vision cameras of a Mammotion Luba (the player itself is Home Assistant's and loads once the card is on a dashboard; here, its placeholder):
+The camera section with the three vision cameras of a Mammotion Luba, one tab each (the live player is Home Assistant's; the garden views here are drawn stand-ins):
 
-| Light | Dark |
+| Left camera | Rear camera |
 |---|---|
-| <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/screenshots/card-camera-light.png" alt="camera section" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/screenshots/card-camera.png" alt="camera section dark" width="400"> |
+| <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/screenshots/card-camera-light.png" alt="camera section" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/screenshots/card-camera-rear.png" alt="rear camera" width="400"> |
+| <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/screenshots/card-camera.png" alt="camera section dark" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/screenshots/card-camera-rear-dark.png" alt="rear camera dark" width="400"> |
 
 ### Confirmation
 

@@ -3131,11 +3131,13 @@ const FULL_STYLE = `
               background: color-mix(in srgb, var(--primary-text-color) 8%, var(--secondary-background-color, rgba(127,127,127,.08))); }
   .cam-view ha-camera-stream { position: absolute; inset: 0; width: 100%; height: 100%; }
   .cam-view .cam-icon { width: 40px; height: 40px; color: var(--secondary-text-color); opacity: .5; }
+  /* Once the player shows its first frame, the placeholder icon goes (the player paints under later siblings). */
+  .cam-view:not(.loading) > .cam-icon { display: none; }
   .cam-view.loading .cam-icon { animation: cam-pulse 1.4s ease-in-out infinite; }
   .cam-view .cam-off { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
                        font-size: 12px; color: var(--secondary-text-color); }
   .cam-open { all: unset; position: absolute; top: 8px; right: 8px; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: grid; place-items: center;
-              background: rgba(20,20,20,.45); color: #fff; backdrop-filter: blur(4px); }
+              background: rgba(20,20,20,.55); color: #fff; }
   .cam-open .icon { width: 18px; height: 18px; }
   .cam-open:hover { background: rgba(20,20,20,.65); }
   .cam-open:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
