@@ -22,7 +22,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      # The built file lives in the releases, not in the repository: HACS can only validate the repository once a
+      # release exists. Before the first one (which the Release workflow publishes once this check passes), the
+      # validation is skipped instead of failing, so that a new repository is not locked out of its first release.
+      - name: Check for a release
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          count=$(gh api "repos/${{ github.repository }}/releases?per_page=1" --jq length)
+          echo "exists=$([ "$count" != "0" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          [ "$count" != "0" ] || echo "::notice::No release yet: HACS validation skipped until the first one is published."
+
       - name: HACS validation
+        if: steps.release.outputs.exists == 'true'
         uses: hacs/action@1ebf01c408f29afcb6406bd431bc98fd8cbb15aa # main
         with:
           category: plugin
