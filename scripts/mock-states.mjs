@@ -1,6 +1,7 @@
 // Mock Home Assistant registries and states shaped like the integrations the cards read: Husqvarna Automower (an
 // Automower 430X NERA), Landroid Cloud (a Worx Landroid Vision), Ecovacs (a GOAT G1 with its map), Mammotion (a Luba 2)
-// and Bosch Indego (an Indego S+ 500, entities keyed by their ids), used to render screenshots and run the tests.
+// and Bosch Indego (an Indego S+ 500, entities keyed by their ids, its camera rendering the map), used to render
+// screenshots and run the tests.
 // Entity ids are in French on purpose (the cards never rely on them); the names shown are in English.
 export const states = {};
 export const entities = {};
@@ -119,6 +120,10 @@ entity("switch.luba_detection_pluie", "luba", "rain_detection", "on", { friendly
 entity("button.luba_reprendre", "luba", "continue_last_job", "unknown", { friendly_name: "Luba 2 AWD Continue last job" }, "mammotion");
 entity("button.luba_annuler", "luba", "cancel_task", "unknown", { friendly_name: "Luba 2 AWD Cancel task" }, "mammotion");
 entity("button.luba_redemarrer", "luba", "restart_mower", "unknown", { friendly_name: "Luba 2 AWD Restart mower" }, "mammotion", "diagnostic");
+// Vision cameras, streamed over WebRTC (the card shows them with Home Assistant's own player).
+entity("camera.luba_gauche", "luba", "webrtc_camera", "idle", { friendly_name: "Luba 2 AWD Left vision camera", frontend_stream_type: "web_rtc" }, "mammotion");
+entity("camera.luba_droite", "luba", "webrtc_camera_right", "idle", { friendly_name: "Luba 2 AWD Right vision camera", frontend_stream_type: "web_rtc" }, "mammotion");
+entity("camera.luba_arriere", "luba", "webrtc_camera_rear", "idle", { friendly_name: "Luba 2 AWD Rear vision camera", frontend_stream_type: "web_rtc" }, "mammotion");
 
 // Bosch Indego S+ 500 (entities named by their ids, no translation keys): docked, lawn 85 % mowed.
 device("indego", "Indego S+ 500", "Indego S+ 500", "Bosch");
@@ -138,6 +143,8 @@ entity("sensor.indego_1234_last_error_code", "indego", null, "none", {}, "indego
 entity("sensor.indego_1234_session_count", "indego", null, "412", {}, "indego", "diagnostic");
 entity("sensor.indego_1234_battery_cycles", "indego", null, "273", {}, "indego", "diagnostic");
 entity("switch.indego_1234_smartmowing", "indego", null, "on", { friendly_name: "Indego S+ 500 SmartMowing" }, "indego", "config");
+// The Indego "camera" renders the garden map: a picture, no live stream.
+entity("camera.indego_1234_camera", "indego", null, "idle", { friendly_name: "Indego S+ 500 Camera", entity_picture: `data:image/svg+xml;base64,${Buffer.from(MAP).toString("base64")}` }, "indego");
 
 // Overrides for the animated states (GIFs) and the tests: patched into the states for one capture only.
 export const mowing = {
