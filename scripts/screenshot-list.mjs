@@ -25,8 +25,12 @@ export const shots = [
   // Mammotion Luba: mowing the orchard, time left.
   ...bothDark("card-mammotion", "mower-card", 460, { device: "Luba 2 AWD", collapsed: ["options"] }),
   ...bothDark("mini-card-mammotion", "mower-mini-card", 380, { device: "Luba 2 AWD" }),
+  // Mammotion Luba: the camera section unfolded, with a tab per vision camera (the player is a stand-in drawing a
+  // garden scene, see scripts/screenshots.mjs), then the rear camera picked.
+  ...bothDark("card-camera", "mower-card", 460, { device: "Luba 2 AWD", show_actions: false, show_options: false, show_maintenance: false, show_stats: false }, { clicks: ['[data-section="camera"]'] }),
+  ...both("card-camera-rear", "mower-card", 460, { device: "Luba 2 AWD", show_actions: false, show_options: false, show_maintenance: false, show_stats: false }, { clicks: ['[data-section="camera"]', '[data-action="camera"][data-entity="camera.luba_arriere"]'] }),
   // Bosch Indego: entities without translation keys.
-  ...both("card-indego", "mower-card", 460, { device: "Indego S+ 500", collapsed: [] }),
+  ...both("card-indego", "mower-card", 460, { device: "Indego S+ 500", collapsed: [], show_map: "always" }),
   ...both("mini-card-indego", "mower-mini-card", 380, { device: "Indego S+ 500" }),
   // Mini card switched to the full card by its detail button.
   ...both("mini-card-zoom", "mower-mini-card", 460, {}, { clicks: [".zoom"] }),

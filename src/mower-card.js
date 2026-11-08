@@ -263,7 +263,7 @@ const ID_KEYS = {
 };
 const KEY_MAPS = { husqvarna_automower: AUTOMOWER_KEYS, landroid_cloud: LANDROID_KEYS, ecovacs: ECOVACS_KEYS, mammotion: MAMMOTION_KEYS, zcsmower: ZCS_KEYS, gardena_smart_system: { mower_error: "error" } };
 const PENDING_MS = 45000;
-const DEFAULT_COLLAPSED = ["stats"];
+const DEFAULT_COLLAPSED = ["camera", "stats"];
 // lawn_mower supported_features bits.
 const FEATURE = { start: 1, pause: 2, dock: 4, stop: 8 };
 
@@ -303,6 +303,8 @@ const ICONS = {
   collision: "M11,15H6L13,1V9H18L11,23V15Z",
   bulb: "M12,2A7,7 0 0,0 5,9C5,11.38 6.19,13.47 8,14.74V17A1,1 0 0,0 9,18H15A1,1 0 0,0 16,17V14.74C17.81,13.47 19,11.38 19,9A7,7 0 0,0 12,2M9,21A1,1 0 0,0 10,22H14A1,1 0 0,0 15,21V20H9V21Z",
   options: "M3,17V19H9V17H3M3,5V7H13V5H3M13,21V19H21V17H13V15H11V21H13M7,9V11H3V13H7V15H9V9H7M21,13V11H11V13H21M15,9H17V7H21V5H17V3H15V9Z",
+  // mdi:video
+  camera: "M17,10.5V7A1,1 0 0,0 16,6H4A1,1 0 0,0 3,7V17A1,1 0 0,0 4,18H16A1,1 0 0,0 17,17V13.5L21,17.5V6.5L17,10.5Z",
   lock: "M12,17A2,2 0 0,0 14,15C14,13.89 13.1,13 12,13A2,2 0 0,0 10,15A2,2 0 0,0 12,17M18,8A2,2 0 0,1 20,10V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V10C4,8.89 4.9,8 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z",
 };
 
@@ -341,6 +343,10 @@ const STRINGS = {
     total_area: "Total area",
     sessions: "Mowing sessions",
     map: "Map",
+    camera: "Camera",
+    camera_unavailable: "Camera unavailable",
+    show_camera: "Show camera",
+    camera_entity: "Camera entity (optional, replaces the cameras of the device)",
     rain: "Rain detected",
     rain_delay: "Rain delay · {time}",
     cutting_height: "Cutting height",
@@ -423,6 +429,10 @@ const STRINGS = {
     total_area: "Surface totale",
     sessions: "Tontes",
     map: "Carte",
+    camera: "Caméra",
+    camera_unavailable: "Caméra indisponible",
+    show_camera: "Afficher la caméra",
+    camera_entity: "Entité caméra (optionnelle, remplace les caméras de l'appareil)",
     rain: "Pluie détectée",
     rain_delay: "Report pluie · {time}",
     cutting_height: "Hauteur de coupe",
@@ -503,6 +513,10 @@ const STRINGS = {
     total_area: "Gesamtfläche",
     sessions: "Mähvorgänge",
     map: "Karte",
+    camera: "Kamera",
+    camera_unavailable: "Kamera nicht verfügbar",
+    show_camera: "Kamera anzeigen",
+    camera_entity: "Kamera-Entität (optional, ersetzt die Kameras des Geräts)",
     rain: "Regen erkannt",
     rain_delay: "Regenpause · {time}",
     cutting_height: "Schnitthöhe",
@@ -583,6 +597,10 @@ const STRINGS = {
     total_area: "Superficie total",
     sessions: "Cortes",
     map: "Mapa",
+    camera: "Cámara",
+    camera_unavailable: "Cámara no disponible",
+    show_camera: "Mostrar cámara",
+    camera_entity: "Entidad de cámara (opcional, sustituye a las cámaras del dispositivo)",
     rain: "Lluvia detectada",
     rain_delay: "Retraso por lluvia · {time}",
     cutting_height: "Altura de corte",
@@ -663,6 +681,10 @@ const STRINGS = {
     total_area: "Укупна површина",
     sessions: "Кошења",
     map: "Мапа",
+    camera: "Камера",
+    camera_unavailable: "Камера недоступна",
+    show_camera: "Прикажи камеру",
+    camera_entity: "Ентитет камере (опционо, замењује камере уређаја)",
     rain: "Откривена киша",
     rain_delay: "Одлагање због кише · {time}",
     cutting_height: "Висина кошења",
@@ -743,6 +765,10 @@ const STRINGS = {
     total_area: "Ukupna površina",
     sessions: "Košenja",
     map: "Mapa",
+    camera: "Kamera",
+    camera_unavailable: "Kamera nedostupna",
+    show_camera: "Prikaži kameru",
+    camera_entity: "Entitet kamere (opciono, zamenjuje kamere uređaja)",
     rain: "Otkrivena kiša",
     rain_delay: "Odlaganje zbog kiše · {time}",
     cutting_height: "Visina košenja",
@@ -823,6 +849,10 @@ const STRINGS = {
     total_area: "Superficie totale",
     sessions: "Tagli",
     map: "Mappa",
+    camera: "Telecamera",
+    camera_unavailable: "Telecamera non disponibile",
+    show_camera: "Mostra la telecamera",
+    camera_entity: "Entità telecamera (opzionale, sostituisce le telecamere del dispositivo)",
     rain: "Pioggia rilevata",
     rain_delay: "Pausa pioggia · {time}",
     cutting_height: "Altezza di taglio",
@@ -903,6 +933,10 @@ const STRINGS = {
     total_area: "Totale oppervlakte",
     sessions: "Maaibeurten",
     map: "Kaart",
+    camera: "Camera",
+    camera_unavailable: "Camera niet beschikbaar",
+    show_camera: "Camera tonen",
+    camera_entity: "Camera-entiteit (optioneel, vervangt de camera's van het apparaat)",
     rain: "Regen gedetecteerd",
     rain_delay: "Regenvertraging · {time}",
     cutting_height: "Maaihoogte",
@@ -983,6 +1017,10 @@ const STRINGS = {
     total_area: "Área total",
     sessions: "Cortes",
     map: "Mapa",
+    camera: "Câmara",
+    camera_unavailable: "Câmara indisponível",
+    show_camera: "Mostrar câmara",
+    camera_entity: "Entidade de câmara (opcional, substitui as câmaras do dispositivo)",
     rain: "Chuva detetada",
     rain_delay: "Atraso por chuva · {time}",
     cutting_height: "Altura de corte",
@@ -1063,6 +1101,10 @@ const STRINGS = {
     total_area: "Łączna powierzchnia",
     sessions: "Koszenia",
     map: "Mapa",
+    camera: "Kamera",
+    camera_unavailable: "Kamera niedostępna",
+    show_camera: "Pokaż kamerę",
+    camera_entity: "Encja kamery (opcjonalna, zastępuje kamery urządzenia)",
     rain: "Wykryto deszcz",
     rain_delay: "Opóźnienie deszczowe · {time}",
     cutting_height: "Wysokość koszenia",
@@ -1143,6 +1185,10 @@ const STRINGS = {
     total_area: "Suprafață totală",
     sessions: "Tunderi",
     map: "Hartă",
+    camera: "Cameră",
+    camera_unavailable: "Cameră indisponibilă",
+    show_camera: "Afișează camera",
+    camera_entity: "Entitate cameră (opțional, înlocuiește camerele dispozitivului)",
     rain: "Ploaie detectată",
     rain_delay: "Amânare ploaie · {time}",
     cutting_height: "Înălțime de tăiere",
@@ -1223,6 +1269,10 @@ const STRINGS = {
     total_area: "Samlet areal",
     sessions: "Klipninger",
     map: "Kort",
+    camera: "Kamera",
+    camera_unavailable: "Kamera utilgængeligt",
+    show_camera: "Vis kamera",
+    camera_entity: "Kamera-entitet (valgfri, erstatter enhedens kameraer)",
     rain: "Regn registreret",
     rain_delay: "Regnforsinkelse · {time}",
     cutting_height: "Klippehøjde",
@@ -1303,6 +1353,10 @@ const STRINGS = {
     total_area: "Total yta",
     sessions: "Klippningar",
     map: "Karta",
+    camera: "Kamera",
+    camera_unavailable: "Kameran är otillgänglig",
+    show_camera: "Visa kamera",
+    camera_entity: "Kameraentitet (valfri, ersätter enhetens kameror)",
     rain: "Regn upptäckt",
     rain_delay: "Regnfördröjning · {time}",
     cutting_height: "Klipphöjd",
@@ -1383,6 +1437,10 @@ const STRINGS = {
     total_area: "Обща площ",
     sessions: "Косения",
     map: "Карта",
+    camera: "Камера",
+    camera_unavailable: "Камерата е недостъпна",
+    show_camera: "Показване на камерата",
+    camera_entity: "Обект за камера (по избор, замества камерите на устройството)",
     rain: "Открит дъжд",
     rain_delay: "Отлагане заради дъжд · {time}",
     cutting_height: "Височина на косене",
@@ -1463,6 +1521,10 @@ const STRINGS = {
     total_area: "Общая площадь",
     sessions: "Стрижки",
     map: "Карта",
+    camera: "Камера",
+    camera_unavailable: "Камера недоступна",
+    show_camera: "Показывать камеру",
+    camera_entity: "Объект камеры (необязательно, заменяет камеры устройства)",
     rain: "Обнаружен дождь",
     rain_delay: "Задержка из-за дождя · {time}",
     cutting_height: "Высота стрижки",
@@ -1543,6 +1605,10 @@ const STRINGS = {
     total_area: "Загальна площа",
     sessions: "Косіння",
     map: "Мапа",
+    camera: "Камера",
+    camera_unavailable: "Камера недоступна",
+    show_camera: "Показувати камеру",
+    camera_entity: "Сутність камери (необов'язково, замінює камери пристрою)",
     rain: "Виявлено дощ",
     rain_delay: "Затримка через дощ · {time}",
     cutting_height: "Висота косіння",
@@ -1623,6 +1689,10 @@ const STRINGS = {
     total_area: "Összes terület",
     sessions: "Nyírások",
     map: "Térkép",
+    camera: "Kamera",
+    camera_unavailable: "A kamera nem elérhető",
+    show_camera: "Kamera megjelenítése",
+    camera_entity: "Kamera entitás (opcionális, az eszköz kameráit helyettesíti)",
     rain: "Eső észlelve",
     rain_delay: "Eső miatti késleltetés · {time}",
     cutting_height: "Vágási magasság",
@@ -1703,6 +1773,10 @@ const STRINGS = {
     total_area: "Celková plocha",
     sessions: "Kosenia",
     map: "Mapa",
+    camera: "Kamera",
+    camera_unavailable: "Kamera nedostupná",
+    show_camera: "Zobraziť kameru",
+    camera_entity: "Entita kamery (voliteľná, nahrádza kamery zariadenia)",
     rain: "Zistený dážď",
     rain_delay: "Odklad pre dážď · {time}",
     cutting_height: "Výška kosenia",
@@ -1783,6 +1857,10 @@ const STRINGS = {
     total_area: "Celková plocha",
     sessions: "Sekání",
     map: "Mapa",
+    camera: "Kamera",
+    camera_unavailable: "Kamera nedostupná",
+    show_camera: "Zobrazit kameru",
+    camera_entity: "Entita kamery (volitelná, nahrazuje kamery zařízení)",
     rain: "Zjištěn déšť",
     rain_delay: "Odklad kvůli dešti · {time}",
     cutting_height: "Výška sekání",
@@ -1863,6 +1941,10 @@ const STRINGS = {
     total_area: "Skupna površina",
     sessions: "Košnje",
     map: "Zemljevid",
+    camera: "Kamera",
+    camera_unavailable: "Kamera ni na voljo",
+    show_camera: "Prikaži kamero",
+    camera_entity: "Entiteta kamere (neobvezno, nadomesti kamere naprave)",
     rain: "Zaznan dež",
     rain_delay: "Zamik zaradi dežja · {time}",
     cutting_height: "Višina košnje",
@@ -1943,6 +2025,10 @@ const STRINGS = {
     total_area: "Kopējā platība",
     sessions: "Pļaušanas",
     map: "Karte",
+    camera: "Kamera",
+    camera_unavailable: "Kamera nav pieejama",
+    show_camera: "Rādīt kameru",
+    camera_entity: "Kameras entītija (neobligāta, aizstāj ierīces kameras)",
     rain: "Konstatēts lietus",
     rain_delay: "Lietus aizkave · {time}",
     cutting_height: "Pļaušanas augstums",
@@ -2023,6 +2109,10 @@ const STRINGS = {
     total_area: "Συνολική έκταση",
     sessions: "Κουρέματα",
     map: "Χάρτης",
+    camera: "Κάμερα",
+    camera_unavailable: "Η κάμερα δεν είναι διαθέσιμη",
+    show_camera: "Εμφάνιση κάμερας",
+    camera_entity: "Οντότητα κάμερας (προαιρετική, αντικαθιστά τις κάμερες της συσκευής)",
     rain: "Εντοπίστηκε βροχή",
     rain_delay: "Καθυστέρηση λόγω βροχής · {time}",
     cutting_height: "Ύψος κοπής",
@@ -2245,9 +2335,46 @@ const resolve = (hass) => {
 
 // Same dependency list (same length, same objects): what a memoized value was built from has not changed.
 const sameDeps = (a, b) => !!a && a.length === b.length && a.every((d, i) => d === b[i]);
+// A camera entity with a live stream (frontend_stream_type: hls or web_rtc), as opposed to a camera that only
+// renders a picture (the Bosch Indego map).
+const isLive = (s) => !!s?.attributes?.frontend_stream_type;
 // Map pictures of a device: the entity set with map_entity (which may belong to no device), else the
-// integration's image or camera entities (Ecovacs GOAT map, Bosch Indego camera).
-const mapIds = (dev, config) => (config?.map_entity ? [config.map_entity] : [...(dev.extra.image || []), ...(dev.extra.camera || [])]);
+// integration's image entities and its cameras without a live stream (Ecovacs GOAT map, Bosch Indego camera).
+const mapIds = (dev, config, hass) =>
+  config?.map_entity ? [config.map_entity] : [...(dev.extra.image || []), ...(dev.extra.camera || []).filter((id) => !isLive(hass?.states[id]))];
+// Live cameras of a device (Mammotion Luba / Yuka vision cameras): the entity set with camera_entity, else the
+// cameras of the device that stream.
+const cameraIds = (dev, config, hass) => (config?.camera_entity ? [config.camera_entity] : (dev.extra.camera || []).filter((id) => isLive(hass?.states[id])));
+
+// Home Assistant's own live player (WebRTC, HLS or MJPEG, whichever the camera offers). It ships with the picture
+// cards, which are loaded on demand: building one loads it. Resolves once <ha-camera-stream> is defined.
+let streamLoad = null;
+const loadStream = (entity) => {
+  if (customElements.get("ha-camera-stream")) return Promise.resolve();
+  if (!streamLoad) {
+    streamLoad = (async () => {
+      const helpers = window.loadCardHelpers ? await window.loadCardHelpers() : null;
+      if (!helpers) throw new Error("loadCardHelpers unavailable");
+      helpers.createCardElement({ type: "picture-entity", entity, camera_view: "live" });
+      // whenDefined never rejects: time out so that a failed load rearms streamLoad instead of hanging forever.
+      let timer;
+      try {
+        await Promise.race([
+          customElements.whenDefined("ha-camera-stream"),
+          new Promise((_, reject) => {
+            timer = setTimeout(() => reject(new Error("ha-camera-stream not loaded")), 15000);
+          }),
+        ]);
+      } finally {
+        clearTimeout(timer);
+      }
+    })().catch((err) => {
+      streamLoad = null; // the next update tries again
+      throw err;
+    });
+  }
+  return streamLoad;
+};
 
 const listDevices = (hass) => {
   const m = hass && resolve(hass);
@@ -2436,7 +2563,7 @@ class MowerBase extends HTMLElement {
     if (!h || !this._config) return null;
     const { dev } = findDevice(h, this._config);
     if (!dev) return null;
-    const ids = [dev.mower, ...Object.values(dev.entities), ...Object.values(dev.extra).flat(), this._config.map_entity];
+    const ids = [dev.mower, ...Object.values(dev.entities), ...Object.values(dev.extra).flat(), this._config.map_entity, this._config.camera_entity];
     return [h.entities, h.devices, h.language, h.locale, h.localize, h.formatEntityState, h.themes?.darkMode, this._subtitle(dev), ...ids.map((id) => h.states[id])];
   }
 
@@ -2457,6 +2584,16 @@ class MowerBase extends HTMLElement {
     document.addEventListener("click", this._onOutside, true);
     // Reattached with the popup still open (view switch, editor): Escape keeps closing it.
     if (this._confirm) window.addEventListener("keydown", this._onKey);
+    // The live camera stream stops while the card is off-screen or the tab hidden, and connects again when it shows.
+    this._onVisibility ??= () => this._syncCamera();
+    document.addEventListener("visibilitychange", this._onVisibility);
+    if (typeof IntersectionObserver === "function") {
+      this._observer ??= new IntersectionObserver((entries) => {
+        this._offscreen = !entries.at(-1).isIntersecting;
+        this._syncCamera();
+      });
+      this._observer.observe(this);
+    }
     // "Next start in 5 minutes" moves on its own: re-checked every minute while the card is on the page (set hass
     // only rebuilds the card when the text, part of _deps, changed).
     clearInterval(this._tick);
@@ -2470,7 +2607,10 @@ class MowerBase extends HTMLElement {
     this._tick = null;
     document.removeEventListener("click", this._onOutside, true);
     window.removeEventListener("keydown", this._onKey);
+    document.removeEventListener("visibilitychange", this._onVisibility);
+    this._observer?.disconnect();
     clearTimeout(this._pendingTimer);
+    this._syncCamera();
   }
 
   // Service call whose failure is already reported by Home Assistant (toast): the rejection is handled here so
@@ -2513,12 +2653,60 @@ class MowerBase extends HTMLElement {
     this._html = html;
     this.shadowRoot.innerHTML = html;
     this._placeImages();
+    this._placeCamera();
     if (kept) this._restoreFocus(kept);
     if (this._confirm) {
       const sel = focused === "confirm_cancel" ? '[data-action="confirm_cancel"]' : ".modal .primary";
       // preventScroll: an update while the popup is open must not bring a scrolled page back to the card.
       this.shadowRoot.querySelector(sel)?.focus({ preventScroll: true });
     }
+  }
+
+  // The live player (<ha-camera-stream>) outlives the renders, like the pictures: moving it reconnects the stream,
+  // and a fresh one shows nothing until its first frame. It is created once the player is loaded (see loadStream),
+  // and given its camera in _syncCamera.
+  _placeCamera() {
+    const slot = this.shadowRoot.querySelector(".cam-view");
+    if (!slot) {
+      this._camNode = null;
+      this._syncCamera();
+      return;
+    }
+    if (this._camNode) {
+      slot.prepend(this._camNode);
+    } else if (customElements.get("ha-camera-stream")) {
+      const stream = document.createElement("ha-camera-stream");
+      stream.muted = true;
+      stream.fitMode = "cover";
+      stream.aspectRatio = 16 / 9;
+      stream.addEventListener("load", () => this.shadowRoot.querySelector(".cam-view")?.classList.remove("loading"));
+      slot.prepend(stream);
+      this._camNode = stream;
+    } else {
+      loadStream(slot.dataset.cam).then(
+        () => {
+          if (this.isConnected && this.shadowRoot.querySelector(".cam-view")) this._placeCamera();
+        },
+        () => {},
+      );
+    }
+    this._syncCamera();
+  }
+
+  // Gives the player its camera, or none while the card is off-screen, hidden, detached, or shows no camera (the
+  // stream then stops: a cellular mower meters its streaming time).
+  _syncCamera() {
+    const stream = this._camNode;
+    if (!stream) return;
+    const slot = this.shadowRoot.querySelector(".cam-view");
+    const id = slot?.dataset.cam;
+    const st = id && this._hass?.states[id];
+    const live = !!st && st.state !== "unavailable" && this.isConnected && !this._offscreen && !document.hidden;
+    const obj = live ? st : undefined;
+    // Older Home Assistant versions take hass; newer ones read it from the page and do not declare it.
+    if (stream.constructor.elementProperties?.has?.("hass")) stream.hass = this._hass;
+    if (obj?.entity_id !== stream.stateObj?.entity_id) slot?.classList.toggle("loading", !!obj);
+    if (stream.stateObj !== obj) stream.stateObj = obj;
   }
 
   // The focused element of the card, as what identifies it in the next render: its tag and data attributes, and its
@@ -2609,6 +2797,10 @@ class MowerBase extends HTMLElement {
     // reaches a button before the card re-renders).
     if ((MOWER_ACTIONS.has(action) || action === "button") && this._offline(this._dev)) return;
     if (action === "zoom") return this._toggleZoom(ev);
+    if (action === "camera") {
+      this._camera = entity;
+      return this._update();
+    }
     if (action === "toggle_section") {
       const key = el.dataset.section;
       this._toggled = new Map(this._toggled).set(key, !this._isCollapsed(key));
@@ -2932,6 +3124,24 @@ const FULL_STYLE = `
   .toggle-btn:focus-visible { outline: 2px solid var(--primary-color, var(--mc-accent)); outline-offset: 2px; }
   .toggle-btn.disabled { opacity: .45; cursor: default; }
   .map img { width: 100%; border-radius: 10px; display: block; background: var(--secondary-background-color, rgba(127,127,127,.08)); }
+  .cam-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+  .cam-tabs .btn { font-weight: 400; }
+  .cam-tabs .btn.on { background: color-mix(in srgb, var(--mc-accent) 16%, transparent); color: var(--mc-accent-text); font-weight: 500; }
+  .cam-view { position: relative; aspect-ratio: 16 / 9; border-radius: 10px; overflow: hidden; display: flex; align-items: center; justify-content: center;
+              background: color-mix(in srgb, var(--primary-text-color) 8%, var(--secondary-background-color, rgba(127,127,127,.08))); }
+  .cam-view ha-camera-stream { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .cam-view .cam-icon { width: 40px; height: 40px; color: var(--secondary-text-color); opacity: .5; }
+  /* Once the player shows its first frame, the placeholder icon goes (the player paints under later siblings). */
+  .cam-view:not(.loading) > .cam-icon { display: none; }
+  .cam-view.loading .cam-icon { animation: cam-pulse 1.4s ease-in-out infinite; }
+  .cam-view .cam-off { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+                       font-size: 12px; color: var(--secondary-text-color); }
+  .cam-open { all: unset; position: absolute; top: 8px; right: 8px; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; display: grid; place-items: center;
+              background: rgba(20,20,20,.55); color: #fff; }
+  .cam-open .icon { width: 18px; height: 18px; }
+  .cam-open:hover { background: rgba(20,20,20,.65); }
+  .cam-open:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
+  @keyframes cam-pulse { 0%, 100% { opacity: .25; } 50% { opacity: .6; } }
   /* Narrow card (9 of 12 columns in a narrow Sections view, ~240 px): the maintenance bars give way to the labels
      (the value keeps its state color), then the picture shrinks and the statistics take one column. */
   @container (max-width: 360px) {
@@ -2985,6 +3195,7 @@ class MowerCard extends MowerBase {
     if (c.show_options !== false) parts.push(this._options(dev));
     if (c.show_maintenance !== false) parts.push(this._maintenance(dev));
     if (c.show_stats !== false) parts.push(this._stats(dev));
+    if (c.show_camera !== false) parts.push(this._cameraSection(dev));
     if (this._showMap(status)) parts.push(this._map(dev));
     return `<style>${BASE_STYLE}${FULL_STYLE}${accentStyle(dev, this._hass)}</style>
       <ha-card>
@@ -3215,8 +3426,34 @@ class MowerCard extends MowerBase {
     return statusClass(status?.state) === "active";
   }
 
+  // Live camera of the mower (Mammotion Luba / Yuka: left, right, rear and vision cameras), in a section folded by
+  // default: the stream only runs while the section is unfolded and the card visible. Several cameras: one tab each.
+  _cameraSection(dev) {
+    const ids = cameraIds(dev, this._config, this._hass).filter((id) => this._s(id));
+    if (!ids.length) return "";
+    const current = ids.includes(this._camera) ? this._camera : ids[0];
+    const title = this._sectionTitle("camera", ICONS.camera, this._t("camera"));
+    if (this._isCollapsed("camera")) return `<div>${title}</div>`;
+    const tabs =
+      ids.length > 1
+        ? `<div class="cam-tabs">${ids
+            .map((id) => `<button class="btn${id === current ? " on" : ""}" data-action="camera" data-entity="${esc(id)}"><span>${esc(this._shortName(dev, this._s(id)))}</span></button>`)
+            .join("")}</div>`
+        : "";
+    const st = this._s(current);
+    const off = !st || st.state === "unavailable";
+    return `<div>
+      ${title}
+      ${tabs}
+      <div class="cam-view${off ? "" : " loading"}" data-cam="${esc(current)}">
+        ${off ? `<div class="cam-off">${svgIcon(ICONS.camera, "cam-icon")}<span>${esc(this._t("camera_unavailable"))}</span></div>` : svgIcon(ICONS.camera, "cam-icon")}
+        <button class="cam-open" data-entity="${esc(current)}" title="${esc(this._shortName(dev, st || { entity_id: current }))}" aria-label="${esc(this._shortName(dev, st || { entity_id: current }))}">${svgIcon(ICONS.expand)}</button>
+      </div>
+    </div>`;
+  }
+
   _map(dev) {
-    const map = mapIds(dev, this._config)
+    const map = mapIds(dev, this._config, this._hass)
       .map((id) => this._s(id))
       .find((s) => s?.attributes?.entity_picture);
     if (!map) return "";
@@ -3482,6 +3719,7 @@ class MowerCardEditor extends MowerEditorBase {
       ["show_options", true],
       ["show_maintenance", true],
       ["show_stats", true],
+      ["show_camera", true],
     ];
   }
 
@@ -3511,11 +3749,13 @@ class MowerCardEditor extends MowerEditorBase {
               ["options", "options"],
               ["maintenance", "maintenance"],
               ["stats", "statistics"],
+              ["camera", "camera"],
             ].map(([value, label]) => ({ value, label: tr(label) })),
           },
         },
       },
       { name: "map_entity", selector: { entity: { domain: ["camera", "image"] } } },
+      { name: "camera_entity", selector: { entity: { domain: "camera" } } },
     ];
   }
 }
@@ -3546,7 +3786,7 @@ for (const card of [
   {
     type: "mower-card",
     name: "Mower Card",
-    description: "Monitor and control a robot lawn mower (Husqvarna Automower, Ecovacs GOAT, Worx Landroid, Mammotion, ZCS, Bosch Indego, Gardena…): status, battery, schedule, actions, maintenance and statistics.",
+    description: "Monitor and control a robot lawn mower (Husqvarna Automower, Ecovacs GOAT, Worx Landroid, Mammotion, ZCS, Bosch Indego, Gardena…): status, battery, schedule, actions, maintenance, statistics, camera and map.",
   },
   {
     type: "mower-mini-card",

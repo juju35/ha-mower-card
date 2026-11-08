@@ -286,7 +286,35 @@ test("the editor lists the mowers and keeps the YAML minimal", () => {
   );
   editor._form.listeners["value-changed"]({
     stopPropagation() {},
-    detail: { value: { device: "automower", title: "", image: "auto", show_controls: true, show_stats: false, show_map: "mowing", collapsed: ["stats"], language: "" } },
+    detail: { value: { device: "automower", title: "", image: "auto", show_controls: true, show_stats: false, show_map: "mowing", collapsed: ["camera", "stats"], language: "" } },
   });
   assert.deepEqual(plain(events.at(-1).detail.config), { device: "automower", show_stats: false });
+});
+
+test("the live cameras get their own section, folded by default, with a tab per camera; a picture-only camera is the map", () => {
+  const luba = (config = {}) => newCard(makeHass(), { device: "Luba 2 AWD", ...config }).shadowRoot.innerHTML;
+  let html = luba({ collapsed: ["camera"] });
+  assert.match(html, /data-section="camera" aria-expanded="false"/);
+  assert.doesNotMatch(html, /class="cam-view/, "no player while folded: the stream does not run");
+  html = luba();
+  assert.match(html, /<div class="cam-view loading" data-cam="camera.luba_gauche">/);
+  assert.match(html, /data-action="camera" data-entity="camera.luba_droite"/);
+  assert.match(html, /data-action="camera" data-entity="camera.luba_arriere"/);
+  assert.match(html, /class="btn on" data-action="camera" data-entity="camera.luba_gauche"[^>]*><span>Left vision camera</);
+  assert.doesNotMatch(html, /data-map=/, "streaming cameras are not maps");
+  // Picking another camera.
+  const card = newCard(makeHass(), { device: "Luba 2 AWD" });
+  click(card, { action: "camera", entity: "camera.luba_arriere" });
+  assert.match(card.shadowRoot.innerHTML, /data-cam="camera.luba_arriere"/);
+  // camera_entity replaces the device's cameras; show_camera: false removes the section.
+  assert.match(luba({ camera_entity: "camera.luba_droite" }), /data-cam="camera.luba_droite"/);
+  assert.doesNotMatch(luba({ camera_entity: "camera.luba_droite" }), /class="cam-tabs"/);
+  assert.doesNotMatch(luba({ show_camera: false }), /data-section="camera"/);
+  // An unavailable camera says so.
+  const off = withOverrides({ "camera.luba_gauche": { state: "unavailable" } });
+  assert.match(newCard(makeHass(off), { device: "Luba 2 AWD" }).shadowRoot.innerHTML, /Camera unavailable/);
+  // Bosch Indego: its camera renders the map, no live section.
+  const indego = newCard(makeHass(), { device: "Indego S+ 500", show_map: "always" }).shadowRoot.innerHTML;
+  assert.doesNotMatch(indego, /data-section="camera"/);
+  assert.match(indego, /data-map="camera.indego_1234_camera"/);
 });

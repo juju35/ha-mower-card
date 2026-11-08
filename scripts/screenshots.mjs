@@ -46,13 +46,50 @@ const THEMES = {
   },
 };
 
-// Minimal stand-in for Home Assistant's <ha-card>.
+// Minimal stand-ins for Home Assistant's <ha-card> and <ha-camera-stream>: the player draws a still garden scene per
+// camera (the view from a mower's vision camera: lawn in the foreground, hedge or fence, sky), as ha-home-camera-card
+// does for its rooms.
+const scene = (body) =>
+  `url("data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 90" preserveAspectRatio="xMidYMid slice">${body}</svg>`)}")`;
+const garden = (sky, far, extra) =>
+  '<defs><linearGradient id="s" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="' + sky[0] + '"/><stop offset="1" stop-color="' + sky[1] + '"/></linearGradient>' +
+  '<linearGradient id="g" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#6fae4a"/><stop offset="1" stop-color="#3f7a2c"/></linearGradient>' +
+  '<radialGradient id="v" cx="50%" cy="45%" r="75%"><stop offset="60%" stop-color="#000" stop-opacity="0"/><stop offset="100%" stop-color="#000" stop-opacity=".4"/></radialGradient></defs>' +
+  '<rect width="160" height="90" fill="url(#s)"/>' + far +
+  '<path d="M0 50 L160 48 L160 90 L0 90Z" fill="url(#g)"/>' +
+  // Mowing stripes and the lawn's own grain
+  '<g fill="#fff" opacity=".08"><path d="M20 90 L48 50 L62 50 L50 90Z"/><path d="M90 90 L92 48 L106 48 L120 90Z"/></g>' +
+  '<g stroke="#2f5f22" stroke-width=".5" opacity=".5"><path d="M0 62 L160 60"/><path d="M0 74 L160 72"/></g>' + extra +
+  '<rect width="160" height="90" fill="url(#v)"/>';
+const SCENES = {
+  // Left: hedge and a flower bed along the lawn, a tree behind.
+  left: scene(garden(["#8fbfe3", "#d7e9f2"], '<ellipse cx="34" cy="30" rx="18" ry="16" fill="#3f7a35"/><rect x="31" y="40" width="6" height="12" fill="#6b4a2b"/><path d="M60 52 Q80 34 160 38 L160 50 L60 52Z" fill="#4d8a3a"/>',
+    '<g><ellipse cx="22" cy="60" rx="14" ry="5" fill="#6b4a2b"/><circle cx="14" cy="56" r="2.2" fill="#e8577a"/><circle cx="22" cy="54" r="2.2" fill="#f2c94c"/><circle cx="30" cy="57" r="2.2" fill="#e8577a"/></g>')),
+  // Right: wooden fence and the house wall, a garden chair.
+  right: scene(garden(["#9cc3e4", "#e3eef5"], '<rect x="96" y="16" width="64" height="34" fill="#e9e2d4"/><rect x="108" y="24" width="14" height="14" rx="1" fill="#6f8fb0"/><g fill="#a9825c"><path d="M0 34 L96 40 L96 50 L0 52Z"/></g><g stroke="#8c6a48" stroke-width=".8"><path d="M16 35 V51"/><path d="M40 37 V51"/><path d="M64 38 V50"/></g>',
+    '<rect x="118" y="54" width="12" height="10" rx="1" fill="#e9e4da"/><rect x="118" y="48" width="12" height="7" rx="1" fill="#f3efe6"/>')),
+  // Rear: the charging station on the lawn and the mowed stripe behind the mower.
+  rear: scene(garden(["#86b6dc", "#cfe3ef"], '<path d="M0 44 Q40 30 80 36 T160 34 L160 50 L0 50Z" fill="#4d8a3a"/>',
+    '<path d="M62 90 L72 50 L88 50 L98 90Z" fill="#fff" opacity=".14"/><rect x="118" y="46" width="10" height="20" rx="2" fill="#4b5057"/><rect x="120" y="49" width="6" height="8" rx="1" fill="#2b2f34"/><circle cx="123" cy="51" r="1" fill="#43c463"/><path d="M104 66 L134 66 L136 70 L102 70Z" fill="#3a3e43"/>')),
+};
 const HA_CARD = `customElements.define("ha-card", class extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" }).innerHTML =
       "<style>:host{display:block;background:var(--card-background-color);border-radius:12px;" +
       "border:1px solid var(--divider-color);color:var(--primary-text-color);overflow:hidden}</style><slot></slot>";
+  }
+});
+const SCENES = ${JSON.stringify(SCENES)};
+customElements.define("ha-camera-stream", class extends HTMLElement {
+  get stateObj() { return this._st; }
+  set stateObj(st) {
+    this._st = st;
+    // The scene follows the camera's name (Left / Right / Rear vision camera).
+    const name = (st && st.attributes.friendly_name) || "";
+    const key = /right/i.test(name) ? "right" : /rear/i.test(name) ? "rear" : "left";
+    this.style.background = st ? SCENES[key] + " center / cover" : "";
+    if (st) setTimeout(() => this.dispatchEvent(new CustomEvent("load", { bubbles: true, composed: true })));
   }
 });`;
 
@@ -118,9 +155,13 @@ function inlinePictures() {
   return [document, card, ...window.pictureRoots].flatMap((r) => r.getAnimations());
 }
 
-const browser = await chromium.launch(
-  process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}
-);
+// Deterministic text rendering: software rasterization, grayscale anti-aliasing and whole-pixel glyph positions.
+// Otherwise Chromium draws a few texts (the battery figure, the button labels) differently from one run to the next
+// once the camera player sits in the card, and the exact pixel comparison would rewrite captures that look the same.
+const browser = await chromium.launch({
+  args: ["--disable-lcd-text", "--disable-font-subpixel-positioning", "--disable-gpu"],
+  ...(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}),
+});
 for (const s of shots) {
   const page = await openCard(browser, s);
   for (const sel of s.clicks || []) {

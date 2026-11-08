@@ -48,8 +48,9 @@ The cards work on top of the integrations you already use — [Husqvarna Automow
 - Options: the switches of the integration (schedule, party mode, lock, stay-out zones, border cutting…) as toggles
 - Maintenance: blade usage time or remaining life, battery charge cycles, collisions, with a reset button (with confirmation) when the integration provides one
 - Statistics: last session, mowing, running, charging and searching time, distance, total area, number of sessions
-- Map of the garden while the mower works (or always, or never), from the integration's image or camera entity or any entity of yours (`map_entity`)
-- Collapsible sections (statistics folded by default)
+- Live camera of the mower (Mammotion Luba / Yuka vision cameras, or any camera entity with `camera_entity`), played by Home Assistant's own player in a section folded by default: the stream only runs while the section is unfolded and the card visible, one tab per camera
+- Map of the garden while the mower works (or always, or never), from the integration's image entity or picture-only camera (Ecovacs GOAT, Bosch Indego) or any entity of yours (`map_entity`)
+- Collapsible sections (camera and statistics folded by default)
 - Sections view: the full card takes 12 columns by default and at least 9, the mini card 6; narrow widths get their own layout (see [Screenshots](#screenshots))
 - Command buttons disabled while the mower is unavailable
 - Detail button on the mini card (top right): it switches the mini card to the full card's content and back; a click anywhere outside the card brings the compact view back
@@ -65,11 +66,11 @@ The cards work on top of the integrations you already use — [Husqvarna Automow
 | <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/images/husqvarna.png" alt="" width="16"> [Husqvarna Automower](https://www.home-assistant.io/integrations/husqvarna_automower/) (core) | Husqvarna Automower | Status, battery and charging, next start, restricted reason, mode, work area and its progress, cutting height, headlights, errors, controls, confirm error, schedule and stay-out zone switches, blade usage time with reset, charge cycles, collisions, totals (mowing, running, charging, searching time, distance) |
 | <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/images/landroid.png" alt="" width="16"> [Landroid Cloud](https://github.com/MTrab/landroid_cloud) (custom) | Worx Landroid, Kress, Landxcape, Ferrex | Status (edge cut, zoning, rain delay…), battery and charging, next schedule, daily progress, zone, cutting height, errors, rain sensor and rain delay, controls, edge cut, schedule / party mode / lock switches, blade time and charge cycles with reset, running time and distance |
 | <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/images/ecovacs.png" alt="" width="16"> [Ecovacs](https://www.home-assistant.io/integrations/ecovacs/) (core) | Ecovacs GOAT | Status, battery, errors, work mode, controls (stop included), relocate, border cutting switch, blade life in % with reset, last session, totals (area, mowing time, sessions), **map** |
-| <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/images/mammotion.png" alt="" width="16"> [Mammotion](https://github.com/mikey0000/Mammotion-HA) (custom) | Mammotion Luba, Yuka | Status, battery and charging, mode, work area, progress, time left, area, blade height, errors, rain, controls (stop included), actions (continue last job, cancel task…), switches, blade time, charge cycles, running time and distance |
+| <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/images/mammotion.png" alt="" width="16"> [Mammotion](https://github.com/mikey0000/Mammotion-HA) (custom) | Mammotion Luba, Yuka | Status, battery and charging, mode, work area, progress, time left, area, blade height, errors, rain, controls (stop included), actions (continue last job, cancel task…), switches, blade time, charge cycles, running time and distance, **live vision cameras** |
 | <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/images/zcs.png" alt="" width="16"> [ZCS Mower](https://github.com/ufozone/ha-zcs-mower) (custom) | Ambrogio, Techline, Wiper | Status, battery, error, controls, actions (work now, charge now, border cut, wake up, trace position) |
-| <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/images/indego.png" alt="" width="16"> [Bosch Indego](https://github.com/jm-73/indego) (custom) | Bosch Indego | Status, battery and charging, lawn mowed in % and m², last completed, next mow, mowing mode, alert and mower stuck, controls, SmartMowing switch, runtime, garden size, sessions, charge cycles |
+| <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/images/indego.png" alt="" width="16"> [Bosch Indego](https://github.com/jm-73/indego) (custom) | Bosch Indego | Status, battery and charging, lawn mowed in % and m², last completed, next mow, mowing mode, alert and mower stuck, controls, SmartMowing switch, runtime, garden size, sessions, charge cycles, **map** (its camera entity) |
 | <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/images/gardena.png" alt="" width="16"> [Gardena Smart System](https://github.com/py-smart-gardena/hass-gardena-smart-system) (custom) | Gardena Sileno | Status, battery, error, controls, operating hours |
-| Any other | — | Status, battery (sensor with the `battery` device class or `battery_level` attribute), charging and rain binary sensors by their device class, controls, buttons as actions, switches as options, image or camera as map |
+| Any other | — | Status, battery (sensor with the `battery` device class or `battery_level` attribute), charging and rain binary sensors by their device class, controls, buttons as actions, switches as options, streaming cameras in the camera section, image or picture-only camera as map |
 
 Details in [Integrations](#integrations).
 
@@ -141,10 +142,13 @@ show_actions: true
 show_options: true
 show_maintenance: true
 show_stats: true
+show_camera: true             # live camera section (Mammotion vision cameras…)
 show_map: mowing              # never | mowing | always
 collapsed:                    # sections folded by default
+  - camera
   - stats
 map_entity: image.goat_g1_map # optional, a camera or image entity
+camera_entity: camera.garden  # optional, replaces the cameras of the device
 language: en                  # optional, defaults to the Home Assistant language
 ```
 
@@ -169,9 +173,11 @@ zoom: true                    # detail button at the top right
 | `show_options` | full | `true` | Options section: the integration's switches (schedule, party mode, lock, stay-out zones…) |
 | `show_maintenance` | full | `true` | Maintenance: blades, charge cycles, collisions |
 | `show_stats` | full | `true` | Statistics |
+| `show_camera` | full | `true` | Camera section: the live cameras of the mower, one tab per camera, played by Home Assistant's own player (WebRTC, HLS or MJPEG). Folded by default: the stream only runs while the section is unfolded and the card is visible on screen, and stops when it is folded (a click outside the card folds it), scrolled away or in a hidden tab — a mower on a cellular connection meters its streaming time. The button on the picture opens the camera's dialog |
 | `show_map` | full | `mowing` | Map of the garden: `mowing` (only while the mower works), `always` (or `true`) or `never` (or `false`) |
-| `collapsed` | full | `[stats]` | Sections folded by default, among `actions`, `options`, `maintenance` and `stats` (`[]` to unfold everything). Click a section title (or Tab to it and press Enter or Space) to fold or unfold it |
+| `collapsed` | full | `[camera, stats]` | Sections folded by default, among `actions`, `options`, `maintenance`, `stats` and `camera` (`[]` to unfold everything). Click a section title (or Tab to it and press Enter or Space) to fold or unfold it |
 | `map_entity` | full | — | Camera or image entity to show as the map instead of the integration's (Ecovacs GOAT map image, Bosch Indego camera) |
+| `camera_entity` | full | — | Camera entity for the camera section, instead of the streaming cameras of the device (a garden camera pointed at the lawn, say) |
 | `language` | both | Auto | Force language: `fr`, `en`, `de`, `es`, `sr`, `sr-Latn`, `it`, `nl`, `pt`, `pl`, `ro`, `da`, `sv`, `bg`, `ru`, `uk`, `hu`, `sk`, `cs`, `sl`, `lv` or `el` (auto-detects from HA settings) |
 
 ## Screenshots
@@ -224,6 +230,15 @@ The detail button at the top right switches the mini card to the full card's con
 |---|---|
 | <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/screenshots/mini-card-zoom.png" alt="mini card zoomed" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/screenshots/mini-card-zoom-dark.png" alt="mini card zoomed dark" width="400"> |
 
+### Camera
+
+The camera section with the three vision cameras of a Mammotion Luba, one tab each (the live player is Home Assistant's; the garden views here are drawn stand-ins):
+
+| Left camera | Rear camera |
+|---|---|
+| <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/screenshots/card-camera-light.png" alt="camera section" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/screenshots/card-camera-rear.png" alt="rear camera" width="400"> |
+| <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/screenshots/card-camera.png" alt="camera section dark" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/screenshots/card-camera-rear-dark.png" alt="rear camera dark" width="400"> |
+
 ### Confirmation
 
 Actions and counter resets ask for a confirmation at the top of the card:
@@ -251,6 +266,10 @@ For an integration the cards do not know, they still show the status and the con
 ### Controls
 
 The Start / pause, Stop and Dock buttons follow the `supported_features` attribute of the `lawn_mower` entity (`START_MOWING`, `PAUSE`, `STOP`, `DOCK`) and call the `lawn_mower.start_mowing`, `lawn_mower.pause`, `lawn_mower.stop` and `lawn_mower.dock` actions. Actions press the integration's `button` entities and options toggle its `switch` entities (the requested state is shown until the integration reports it, up to 45 s). Pressing a button asks for a confirmation in the card.
+
+### Camera and map
+
+A camera entity of the device that reports a stream type (`frontend_stream_type`: WebRTC or HLS — the Mammotion vision cameras) goes to the camera section, played by Home Assistant's `ha-camera-stream` element (loaded on demand, like the picture cards). A camera without a stream only renders a picture (the Bosch Indego garden map) and is shown as the map, like the `image` entities (Ecovacs GOAT). `camera_entity` and `map_entity` override both choices.
 
 ### Brands
 
