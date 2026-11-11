@@ -18,9 +18,9 @@
   <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/images/gardena.png" alt="Gardena" width="64">
 </p>
 
-Lovelace cards for Home Assistant to monitor and control robot lawn mowers from **[Husqvarna](https://www.husqvarna.com)** (Automower), **[Worx](https://www.worx.com)** (Landroid, also Kress and Landxcape), **[Ecovacs](https://www.ecovacs.com)** (GOAT), **[Mammotion](https://mammotion.com)** (Luba, Yuka), **[ZCS](https://www.zcsrobotics.com)** (Ambrogio, Techline, Wiper), **[Bosch](https://www.bosch-garden.com)** (Indego) and **[Gardena](https://www.gardena.com)** (Sileno) — and any other integration that provides a `lawn_mower` entity: status, battery, next start, work area, cutting height, errors, actions, options, maintenance, statistics and map at a glance.
+Lovelace cards for Home Assistant to monitor and control robot lawn mowers from **[Husqvarna](https://www.husqvarna.com)** (Automower), **[Worx](https://www.worx.com)** (Landroid, also Kress and Landxcape), **[Ecovacs](https://www.ecovacs.com)** (GOAT), **[Mammotion](https://mammotion.com)** (Luba, Yuka), **[ZCS](https://www.zcsrobotics.com)** (Ambrogio, Techline, Wiper), **[Bosch](https://www.bosch-garden.com)** (Indego), **[Gardena](https://www.gardena.com)** (Sileno) and **[Dreame](https://www.dreametech.com)** (A1, A1 Pro, A2) — and any other integration that provides a `lawn_mower` entity: status, battery, next start, work area, cutting height, errors, actions, options, maintenance, statistics and map at a glance.
 
-The cards work on top of the integrations you already use — [Husqvarna Automower](https://www.home-assistant.io/integrations/husqvarna_automower/), [Ecovacs](https://www.home-assistant.io/integrations/ecovacs/), [Landroid Cloud](https://github.com/MTrab/landroid_cloud), [Mammotion](https://github.com/mikey0000/Mammotion-HA), [ZCS Mower](https://github.com/ufozone/ha-zcs-mower), [Bosch Indego](https://github.com/jm-73/indego), [Gardena Smart System](https://github.com/py-smart-gardena/hass-gardena-smart-system)… Entities are **discovered automatically** from the Home Assistant registries: you don't pick them one by one, and it works whatever your Home Assistant language or entity ids. The logo, the button color and the drawn picture follow the brand of each mower.
+The cards work on top of the integrations you already use — [Husqvarna Automower](https://www.home-assistant.io/integrations/husqvarna_automower/), [Ecovacs](https://www.home-assistant.io/integrations/ecovacs/), [Landroid Cloud](https://github.com/MTrab/landroid_cloud), [Mammotion](https://github.com/mikey0000/Mammotion-HA), [ZCS Mower](https://github.com/ufozone/ha-zcs-mower), [Bosch Indego](https://github.com/jm-73/indego), [Gardena Smart System](https://github.com/py-smart-gardena/hass-gardena-smart-system), [Dreame Mower](https://github.com/antondaubert/dreame-mower)… Entities are **discovered automatically** from the Home Assistant registries: you don't pick them one by one, and it works whatever your Home Assistant language or entity ids. The logo, the button color and the drawn picture follow the brand of each mower.
 
 [![Open your Home Assistant instance and open a repository inside the Marketplace.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=juju35&repository=ha-mower-card&category=plugin)
 
@@ -70,6 +70,7 @@ The cards work on top of the integrations you already use — [Husqvarna Automow
 | <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/images/zcs.png" alt="" width="16"> [ZCS Mower](https://github.com/ufozone/ha-zcs-mower) (custom) | Ambrogio, Techline, Wiper | Status, battery, error, controls, actions (work now, charge now, border cut, wake up, trace position) |
 | <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/images/indego.png" alt="" width="16"> [Bosch Indego](https://github.com/jm-73/indego) (custom) | Bosch Indego | Status, battery and charging, lawn mowed in % and m², last completed, next mow, mowing mode, alert and mower stuck, controls, SmartMowing switch, runtime, garden size, sessions, charge cycles, **map** (its camera entity) |
 | <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/images/gardena.png" alt="" width="16"> [Gardena Smart System](https://github.com/py-smart-gardena/hass-gardena-smart-system) (custom) | Gardena Sileno | Status, battery, error, controls, operating hours |
+| [Dreame Mower](https://github.com/antondaubert/dreame-mower) (custom) | Dreame A1, A1 Pro, A2 | Status, battery, controls, progress, current task, blade and brush health, schedules and options (rain protection, edge mowing, anti-theft…) |
 | Any other | — | Status, battery (sensor with the `battery` device class or `battery_level` attribute), charging and rain binary sensors by their device class, controls, buttons as actions, switches as options, streaming cameras in the camera section, image or picture-only camera as map |
 
 Details in [Integrations](#integrations).
@@ -178,6 +179,7 @@ zoom: true                    # detail button at the top right
 | `collapsed` | full | `[camera, stats]` | Sections folded by default, among `actions`, `options`, `maintenance`, `stats` and `camera` (`[]` to unfold everything). Click a section title (or Tab to it and press Enter or Space) to fold or unfold it |
 | `map_entity` | full | — | Camera or image entity to show as the map instead of the integration's (Ecovacs GOAT map image, Bosch Indego camera) |
 | `camera_entity` | full | — | Camera entity for the camera section, instead of the streaming cameras of the device (a garden camera pointed at the lawn, say) |
+| `entities` | both | — | Entities of your choice under the names the cards read, replacing the ones found: `battery`, `progress`, `next_start`, `work_area`, `mode`, `error`, `rain`, `blade_life`, `brush_life`, `blade_time`, `charging_cycles`, `total_distance`, `cutting_height`… For example `entities: { blade_life: sensor.my_blade_health }` |
 | `language` | both | Auto | Force language: `fr`, `en`, `de`, `es`, `sr`, `sr-Latn`, `it`, `nl`, `pt`, `pl`, `ro`, `da`, `sv`, `bg`, `ru`, `uk`, `hu`, `sk`, `cs`, `sl`, `lv` or `el` (auto-detects from HA settings) |
 
 ## Screenshots
@@ -259,7 +261,7 @@ The full card at its minimum width (9 of 12 columns of a narrow Sections view) a
 
 ### Integrations
 
-The cards list every device that carries a `lawn_mower` entity, whatever the integration. The other entities of the device (sensors, binary sensors, buttons, switches, numbers, selects, images, cameras) are read by their `translation_key`, mapped per integration to a common set of names (battery, progress, next start, work area, blade time, charge cycles, total distance…). Integrations without translation keys (Bosch Indego, Gardena) are read by the end of their entity ids. Where no key matches, the cards fall back to device classes: `battery`, `battery_charging`, `moisture` (rain), `problem`.
+The cards list every device that carries a `lawn_mower` entity, whatever the integration. The other entities of the device (sensors, binary sensors, buttons, switches, numbers, selects, images, cameras) are read by their `translation_key`, mapped per integration to a common set of names (battery, progress, next start, work area, blade time, charge cycles, total distance…). Integrations without translation keys (Bosch Indego, Gardena) are read by the end of their entity ids. `entities` sets any of them by hand. Where no key matches, the cards fall back to device classes: `battery`, `battery_charging`, `moisture` (rain), `problem`.
 
 For an integration the cards do not know, they still show the status and the controls of the `lawn_mower` entity, the battery, every button of the device as an action and every switch as an option, and an image or camera entity as the map.
 
@@ -330,7 +332,7 @@ Contributions for additional languages are welcome!
 
 ## Credits
 
-Husqvarna and Automower are trademarks of Husqvarna AB; Worx and Landroid of Positec; Ecovacs and GOAT of Ecovacs Robotics; Mammotion, Luba and Yuka of Mammotion; Ambrogio, Techline and Wiper of Zucchetti Centro Sistemi; Bosch and Indego of Robert Bosch GmbH; Gardena and Sileno of Husqvarna AB. The logos come from the [Home Assistant brands](https://github.com/home-assistant/brands) repository. This project is not affiliated with any of these companies.
+Husqvarna and Automower are trademarks of Husqvarna AB; Worx and Landroid of Positec; Ecovacs and GOAT of Ecovacs Robotics; Mammotion, Luba and Yuka of Mammotion; Ambrogio, Techline and Wiper of Zucchetti Centro Sistemi; Bosch and Indego of Robert Bosch GmbH; Gardena and Sileno of Husqvarna AB; Dreame of Dreame Technology. The logos come from the [Home Assistant brands](https://github.com/home-assistant/brands) repository. This project is not affiliated with any of these companies.
 
 ## License
 

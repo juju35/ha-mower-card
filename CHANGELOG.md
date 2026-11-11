@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.0 - 2026-11-11
+
+### Features
+- **Dreame** ([#11](https://github.com/juju35/ha-mower-card/issues/11)): the [Dreame Mower](https://github.com/antondaubert/dreame-mower) integration of the Marketplace gets its own colors and its progress, current task, blade and brush health (a Brush row in the maintenance section) and schedules mapped. It has no camera and no action buttons, so these sections stay hidden.
+- **Entities of your choice**: `entities` sets the entities read under each name (`battery`, `progress`, `blade_life`, `next_start`, `rain`…), replacing the ones found, for an integration the cards do not know or a sensor of your own.
+
 ## 1.2.1 - 2026-11-09
 
 ### Fixes
