@@ -20,6 +20,7 @@ const IMG_LOGO_MAMMOTION = "__IMG_LOGO_MAMMOTION__";
 const IMG_LOGO_ZCS = "__IMG_LOGO_ZCS__";
 const IMG_LOGO_INDEGO = "__IMG_LOGO_INDEGO__";
 const IMG_LOGO_GARDENA = "__IMG_LOGO_GARDENA__";
+const IMG_LOGO_DREAME = "__IMG_LOGO_DREAME__";
 
 // ---------------------------------------------------------------------------
 // Drawn pictures
@@ -169,7 +170,7 @@ const BRANDS = {
   zcs: { logo: IMG_LOGO_ZCS, name: "ZCS", site: "https://www.zcsrobotics.com", accent: ["#0b63aa", "#4aa3ea"] },
   indego: { logo: IMG_LOGO_INDEGO, name: "Bosch Indego", site: "https://www.bosch-garden.com", accent: ["#a01622", "#ff7b85"] },
   gardena: { logo: IMG_LOGO_GARDENA, name: "Gardena", site: "https://www.gardena.com", accent: ["#b8411a", "#ff8a5c"] },
-  dreame: { logo: null, name: "Dreame", site: "https://www.dreametech.com", accent: ["#4a5560", "#aab6c2"] },
+  dreame: { logo: IMG_LOGO_DREAME, name: "Dreame", site: "https://www.dreametech.com", accent: ["#4a5560", "#aab6c2"] },
   generic: { logo: null, name: "", site: "", accent: ["#2e7d32", "#66bb6a"] },
 };
 // Integrations the cards know → their brand. Any other integration with a lawn_mower entity gets the generic brand.
