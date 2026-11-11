@@ -32,6 +32,9 @@ export const shots = [
   // Bosch Indego: entities without translation keys.
   ...both("card-indego", "mower-card", 460, { device: "Indego S+ 500", collapsed: [], show_map: "always" }),
   ...both("mini-card-indego", "mower-mini-card", 380, { device: "Indego S+ 500" }),
+  // Dreame A1 Pro: docked, its LiDAR turret drawn, the worn brush in the maintenance section.
+  ...both("card-dreame", "mower-card", 460, { device: "Dreame A1 Pro", collapsed: [] }),
+  ...both("mini-card-dreame", "mower-mini-card", 380, { device: "Dreame A1 Pro" }),
   // Mini card switched to the full card by its detail button.
   ...both("mini-card-zoom", "mower-mini-card", 460, {}, { clicks: [".zoom"] }),
   // Confirmation popup of an action.

@@ -15,7 +15,8 @@
   <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/images/mammotion.png" alt="Mammotion" width="64">&nbsp;&nbsp;
   <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/images/zcs.png" alt="ZCS" width="64">&nbsp;&nbsp;
   <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/images/indego.png" alt="Bosch Indego" width="64">&nbsp;&nbsp;
-  <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/images/gardena.png" alt="Gardena" width="64">
+  <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/images/gardena.png" alt="Gardena" width="64">&nbsp;&nbsp;
+  <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/images/dreame.png" alt="Dreame" width="64">
 </p>
 
 Lovelace cards for Home Assistant to monitor and control robot lawn mowers from **[Husqvarna](https://www.husqvarna.com)** (Automower), **[Worx](https://www.worx.com)** (Landroid, also Kress and Landxcape), **[Ecovacs](https://www.ecovacs.com)** (GOAT), **[Mammotion](https://mammotion.com)** (Luba, Yuka), **[ZCS](https://www.zcsrobotics.com)** (Ambrogio, Techline, Wiper), **[Bosch](https://www.bosch-garden.com)** (Indego), **[Gardena](https://www.gardena.com)** (Sileno) and **[Dreame](https://www.dreametech.com)** (A1, A1 Pro, A2) — and any other integration that provides a `lawn_mower` entity: status, battery, next start, work area, cutting height, errors, actions, options, maintenance, statistics and map at a glance.
@@ -29,10 +30,10 @@ The cards work on top of the integrations you already use — [Husqvarna Automow
 | <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/screenshots/card.png" alt="automower card" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/screenshots/card-landroid.png" alt="landroid card" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/screenshots/card-ecovacs.png" alt="ecovacs goat card" width="400"> |
 | <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/screenshots/mini-card.png" alt="automower mini card" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/screenshots/mini-card-landroid.png" alt="landroid mini card" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/screenshots/mini-card-ecovacs.png" alt="ecovacs goat mini card" width="400"> |
 
-| <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/images/mammotion.png" alt="" width="20"> Mammotion | <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/images/indego.png" alt="" width="20"> Bosch Indego |
-|---|---|
-| <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/screenshots/card-mammotion.png" alt="mammotion card" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/screenshots/card-indego.png" alt="indego card" width="400"> |
-| <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/screenshots/mini-card-mammotion.png" alt="mammotion mini card" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/screenshots/mini-card-indego.png" alt="indego mini card" width="400"> |
+| <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/images/mammotion.png" alt="" width="20"> Mammotion | <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/images/indego.png" alt="" width="20"> Bosch Indego | <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/images/dreame.png" alt="" width="20"> Dreame |
+|---|---|---|
+| <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/screenshots/card-mammotion.png" alt="mammotion card" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/screenshots/card-indego.png" alt="indego card" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/screenshots/card-dreame.png" alt="dreame card" width="400"> |
+| <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/screenshots/mini-card-mammotion.png" alt="mammotion mini card" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/screenshots/mini-card-indego.png" alt="indego mini card" width="400"> | <img src="https://raw.githubusercontent.com/juju35/ha-mower-card/main/screenshots/mini-card-dreame.png" alt="dreame mini card" width="400"> |
 
 ## Features
 

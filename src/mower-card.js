@@ -59,7 +59,7 @@ const MOWER_COLORS = {
   zcs: { top: "#f1f2f0", side: "#2f3338", stripe: "#4aa3ea", wheel: "#1c1e21", hub: "#b5b9bd" },
   indego: { top: "#4faa3b", side: "#2b2f34", stripe: "#e8e8e6", wheel: "#1c1e21", hub: "#8d939a" },
   gardena: { top: "#3d4a52", side: "#262d33", stripe: "#1fb3c9", wheel: "#1c1e21", hub: "#8d939a" },
-  dreame: { top: "#e9eaec", side: "#3a3d42", stripe: "#9aa3ad", wheel: "#1c1e21", hub: "#b5b9bd" },
+  dreame: { top: "#eceef0", side: "#2e3136", stripe: "#b08a5a", wheel: "#1c1e21", hub: "#b5b9bd", lidar: "#3a3e44" },
   generic: { top: "#4b5057", side: "#2b2f34", stripe: "#45c46a", wheel: "#1c1e21", hub: "#8d939a" },
 };
 
@@ -81,13 +81,16 @@ const wheel = (cx, cy, r, col, moving) => {
 
 // The mower seen from the side, drawn in its own coordinates (104 wide, the ground at y = 0, the body above it) and
 // placed with a transform: rounded lower shell, hood in the brand color, bumper stripe, big rear wheel and small front
-// wheel, red stop button and status light (`light`: a color, or null for none).
+// wheel, red stop button and status light (`light`: a color, or null for none); the LiDAR turret of the brands that
+// have one (`col.lidar`, Dreame).
 const mowerShape = (transform, col, { moving = false, light = null, lightClass = "" } = {}) => {
   let s = `<ellipse cx="54" cy="0" rx="56" ry="4" opacity=".2"/>`;
   s += `<path d="M6 -12 H98 Q104 -12 104 -18 V-24 Q104 -30 96 -30 H10 Q2 -30 2 -22 V-18 Q2 -12 6 -12 Z" fill="${col.side}"/>`;
+  // Lidar turret (Dreame): behind the hood, which hides its base.
+  if (col.lidar) s += `<rect x="62" y="-59" width="20" height="16" rx="3" fill="${col.lidar}"/><rect x="63.5" y="-55" width="17" height="3.2" rx="1.4" fill="#11161b"/><rect x="64" y="-59.8" width="16" height="1.8" rx=".9" fill="${col.stripe}"/>`;
   s += `<path d="M8 -30 Q10 -46 30 -48 H72 Q92 -48 98 -30 Z" fill="${col.top}"/>`;
   s += `<line x1="6" y1="-30" x2="100" y2="-30" stroke="${col.stripe}" stroke-width="3" stroke-linecap="round"/>`;
-  s += `<rect x="40" y="-53" width="16" height="6" rx="2" fill="#c62828"/>`;
+  s += `<rect x="${col.lidar ? 34 : 40}" y="-53" width="16" height="6" rx="2" fill="#c62828"/>`;
   if (light) s += `<circle class="${lightClass}" cx="90" cy="-40" r="2.5" fill="${light}"/>`;
   s += wheel(24, -14, 14, col, moving);
   s += wheel(86, -7, 7, col, moving);
