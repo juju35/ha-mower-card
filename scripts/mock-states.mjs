@@ -147,6 +147,17 @@ entity("switch.indego_1234_smartmowing", "indego", null, "on", { friendly_name: 
 entity("camera.indego_1234_camera", "indego", null, "idle", { friendly_name: "Indego S+ 500 Camera", entity_picture: `data:image/svg+xml;base64,${Buffer.from(MAP).toString("base64")}` }, "indego");
 
 // Overrides for the animated states (GIFs) and the tests: patched into the states for one capture only.
+// Dreame A1 Pro (dreame_mower of the Marketplace): docked, its consumables' health and its schedule.
+device("dreame", "Dreame A1 Pro", "A1 Pro", "Dreame");
+entity("lawn_mower.dreame", "dreame", null, "docked", { supported_features: 15, friendly_name: "Dreame A1 Pro" }, "dreame_mower");
+entity("sensor.dreame_batterie", "dreame", null, "64", { device_class: "battery", unit_of_measurement: "%" }, "dreame_mower");
+entity("sensor.dreame_progression", "dreame", "mowing_progress", "0", { unit_of_measurement: "%" }, "dreame_mower");
+entity("sensor.dreame_tache", "dreame", "current_task", "Idle", {}, "dreame_mower");
+entity("sensor.dreame_lames", "dreame", "consumable_blade_health", "72", { unit_of_measurement: "%" }, "dreame_mower");
+entity("sensor.dreame_brosse", "dreame", "consumable_brush_health", "18", { unit_of_measurement: "%" }, "dreame_mower");
+entity("switch.dreame_programmation", "dreame", "schedule", "on", { friendly_name: "Dreame A1 Pro Schedule 1" }, "dreame_mower", "config");
+entity("switch.dreame_protection_pluie", "dreame", "rain_protection", "on", { friendly_name: "Dreame A1 Pro Rain protection" }, "dreame_mower", "config");
+
 export const mowing = {
   "lawn_mower.tondeuse": { state: "mowing" },
   "binary_sensor.tondeuse_charge": { state: "off" },

@@ -38,6 +38,7 @@ test("every device with a lawn_mower entity is listed, whatever its integration,
     plain(list.map((d) => [d.name, d.platform, d.mower])),
     [
       ["Automower 430X NERA", "husqvarna_automower", "lawn_mower.tondeuse"],
+      ["Dreame A1 Pro", "dreame_mower", "lawn_mower.dreame"],
       ["GOAT G1", "ecovacs", "lawn_mower.goat"],
       ["Indego S+ 500", "indego", "lawn_mower.indego_1234"],
       ["Landroid Vision", "landroid_cloud", "lawn_mower.landroid"],
@@ -282,7 +283,7 @@ test("the editor lists the mowers and keeps the YAML minimal", () => {
   const schema = editor._form.schema;
   assert.deepEqual(
     plain(schema[0].selector.select.options.map((o) => o.label)),
-    ["Automower 430X NERA", "GOAT G1", "Indego S+ 500", "Landroid Vision", "Luba 2 AWD"],
+    ["Automower 430X NERA", "Dreame A1 Pro", "GOAT G1", "Indego S+ 500", "Landroid Vision", "Luba 2 AWD"],
   );
   editor._form.listeners["value-changed"]({
     stopPropagation() {},
@@ -317,4 +318,26 @@ test("the live cameras get their own section, folded by default, with a tab per 
   const indego = newCard(makeHass(), { device: "Indego S+ 500", show_map: "always" }).shadowRoot.innerHTML;
   assert.doesNotMatch(indego, /data-section="camera"/);
   assert.match(indego, /data-map="camera.indego_1234_camera"/);
+});
+
+test("Dreame: its progress, task and consumables mapped; blade and brush in the maintenance section", () => {
+  const dev = mc.resolve(makeHass()).devices.find((d) => d.platform === "dreame_mower");
+  assert.equal(dev.entities.progress, "sensor.dreame_progression");
+  assert.equal(dev.entities.mode, "sensor.dreame_tache");
+  assert.equal(dev.entities.blade_life, "sensor.dreame_lames");
+  assert.equal(dev.entities.brush_life, "sensor.dreame_brosse");
+  assert.equal(mc.brandOf(dev), "dreame");
+  const html = newCard(makeHass(), { device: "dreame" }).shadowRoot.innerHTML;
+  assert.match(html, /Blades[\s\S]*?72 %/);
+  assert.match(html, /Brush[\s\S]*?class="v clickable warn"[^>]*>18 %/);
+});
+
+test("entities: the user's entities under the names the cards read replace the ones found", () => {
+  const st = { ...states, "sensor.my_blade": { entity_id: "sensor.my_blade", state: "40", attributes: { unit_of_measurement: "%" } } };
+  const card = newCard(makeHass(st), { device: "dreame", entities: { blade_life: "sensor.my_blade", "bad key": "sensor.x", progress: "nope" } });
+  const { dev } = mc.findDevice(card._hass, card._config);
+  assert.equal(dev.entities.blade_life, "sensor.my_blade");
+  assert.equal(dev.entities.progress, "sensor.dreame_progression");
+  assert.equal(mc.findDevice(card._hass, card._config).dev, dev);
+  assert.match(card.shadowRoot.innerHTML, /data-entity="sensor\.my_blade"/);
 });

@@ -20,6 +20,7 @@ const IMG_LOGO_MAMMOTION = "__IMG_LOGO_MAMMOTION__";
 const IMG_LOGO_ZCS = "__IMG_LOGO_ZCS__";
 const IMG_LOGO_INDEGO = "__IMG_LOGO_INDEGO__";
 const IMG_LOGO_GARDENA = "__IMG_LOGO_GARDENA__";
+const IMG_LOGO_DREAME = "__IMG_LOGO_DREAME__";
 
 // ---------------------------------------------------------------------------
 // Drawn pictures
@@ -58,6 +59,7 @@ const MOWER_COLORS = {
   zcs: { top: "#f1f2f0", side: "#2f3338", stripe: "#4aa3ea", wheel: "#1c1e21", hub: "#b5b9bd" },
   indego: { top: "#4faa3b", side: "#2b2f34", stripe: "#e8e8e6", wheel: "#1c1e21", hub: "#8d939a" },
   gardena: { top: "#3d4a52", side: "#262d33", stripe: "#1fb3c9", wheel: "#1c1e21", hub: "#8d939a" },
+  dreame: { top: "#eceef0", side: "#2e3136", stripe: "#b08a5a", wheel: "#1c1e21", hub: "#b5b9bd", lidar: "#3a3e44" },
   generic: { top: "#4b5057", side: "#2b2f34", stripe: "#45c46a", wheel: "#1c1e21", hub: "#8d939a" },
 };
 
@@ -79,13 +81,16 @@ const wheel = (cx, cy, r, col, moving) => {
 
 // The mower seen from the side, drawn in its own coordinates (104 wide, the ground at y = 0, the body above it) and
 // placed with a transform: rounded lower shell, hood in the brand color, bumper stripe, big rear wheel and small front
-// wheel, red stop button and status light (`light`: a color, or null for none).
+// wheel, red stop button and status light (`light`: a color, or null for none); the LiDAR turret of the brands that
+// have one (`col.lidar`, Dreame).
 const mowerShape = (transform, col, { moving = false, light = null, lightClass = "" } = {}) => {
   let s = `<ellipse cx="54" cy="0" rx="56" ry="4" opacity=".2"/>`;
   s += `<path d="M6 -12 H98 Q104 -12 104 -18 V-24 Q104 -30 96 -30 H10 Q2 -30 2 -22 V-18 Q2 -12 6 -12 Z" fill="${col.side}"/>`;
+  // Lidar turret (Dreame): behind the hood, which hides its base.
+  if (col.lidar) s += `<rect x="62" y="-59" width="20" height="16" rx="3" fill="${col.lidar}"/><rect x="63.5" y="-55" width="17" height="3.2" rx="1.4" fill="#11161b"/><rect x="64" y="-59.8" width="16" height="1.8" rx=".9" fill="${col.stripe}"/>`;
   s += `<path d="M8 -30 Q10 -46 30 -48 H72 Q92 -48 98 -30 Z" fill="${col.top}"/>`;
   s += `<line x1="6" y1="-30" x2="100" y2="-30" stroke="${col.stripe}" stroke-width="3" stroke-linecap="round"/>`;
-  s += `<rect x="40" y="-53" width="16" height="6" rx="2" fill="#c62828"/>`;
+  s += `<rect x="${col.lidar ? 34 : 40}" y="-53" width="16" height="6" rx="2" fill="#c62828"/>`;
   if (light) s += `<circle class="${lightClass}" cx="90" cy="-40" r="2.5" fill="${light}"/>`;
   s += wheel(24, -14, 14, col, moving);
   s += wheel(86, -7, 7, col, moving);
@@ -168,6 +173,7 @@ const BRANDS = {
   zcs: { logo: IMG_LOGO_ZCS, name: "ZCS", site: "https://www.zcsrobotics.com", accent: ["#0b63aa", "#4aa3ea"] },
   indego: { logo: IMG_LOGO_INDEGO, name: "Bosch Indego", site: "https://www.bosch-garden.com", accent: ["#a01622", "#ff7b85"] },
   gardena: { logo: IMG_LOGO_GARDENA, name: "Gardena", site: "https://www.gardena.com", accent: ["#b8411a", "#ff8a5c"] },
+  dreame: { logo: IMG_LOGO_DREAME, name: "Dreame", site: "https://www.dreametech.com", accent: ["#4a5560", "#aab6c2"] },
   generic: { logo: null, name: "", site: "", accent: ["#2e7d32", "#66bb6a"] },
 };
 // Integrations the cards know → their brand. Any other integration with a lawn_mower entity gets the generic brand.
@@ -179,6 +185,7 @@ const PLATFORMS = {
   zcsmower: "zcs",
   indego: "indego",
   gardena_smart_system: "gardena",
+  dreame_mower: "dreame",
 };
 const brandOf = (dev) => PLATFORMS[dev.platform] || "generic";
 const brandFor = (dev) => BRANDS[brandOf(dev)];
@@ -238,6 +245,14 @@ const MAMMOTION_KEYS = {
   night_light: "headlight",
 };
 const ZCS_KEYS = { state: "status", border_cut: "edge_cut", standby: "standby" };
+// Dreame (dreame_mower of the Marketplace): its progress, task, consumables (health in %) and schedule.
+const DREAME_KEYS = {
+  mowing_progress: "progress",
+  current_task: "mode",
+  consumable_blade_health: "blade_life",
+  consumable_brush_health: "brush_life",
+  wifi_signal: "wifi",
+};
 // Bosch Indego and Gardena: the end of the entity id (after the serial) names the entity.
 const ID_KEYS = {
   indego: {
@@ -261,7 +276,7 @@ const ID_KEYS = {
   },
   gardena_smart_system: { operating_hours: "total_running_time", last_error_code: "error" },
 };
-const KEY_MAPS = { husqvarna_automower: AUTOMOWER_KEYS, landroid_cloud: LANDROID_KEYS, ecovacs: ECOVACS_KEYS, mammotion: MAMMOTION_KEYS, zcsmower: ZCS_KEYS, gardena_smart_system: { mower_error: "error" } };
+const KEY_MAPS = { husqvarna_automower: AUTOMOWER_KEYS, landroid_cloud: LANDROID_KEYS, ecovacs: ECOVACS_KEYS, mammotion: MAMMOTION_KEYS, zcsmower: ZCS_KEYS, dreame_mower: DREAME_KEYS, gardena_smart_system: { mower_error: "error" } };
 const PENDING_MS = 45000;
 const DEFAULT_COLLAPSED = ["camera", "stats"];
 // lawn_mower supported_features bits.
@@ -293,6 +308,9 @@ const ICONS = {
   expand: "M10,21V19H6.41L10.91,14.5L9.5,13.09L5,17.59V14H3V21H10M14.5,10.91L19,6.41V10H21V3H14V5H17.59L13.09,9.5L14.5,10.91Z",
   collapse: "M19.5,3.09L15,7.59V4H13V11H20V9H16.41L20.91,4.5L19.5,3.09M4,13V15H7.59L3.09,19.5L4.5,20.91L9,16.41V20H11V13H4Z",
   blade: "M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4L14.5,9.5L20,12L14.5,14.5L12,20L9.5,14.5L4,12L9.5,9.5L12,4M12,10A2,2 0 0,0 10,12A2,2 0 0,0 12,14A2,2 0 0,0 14,12A2,2 0 0,0 12,10Z",
+  // mdi:brush (the brush of the Dreame mowers)
+  brush:
+    "M20.71,4.63L19.37,3.29C19,2.9 18.35,2.9 17.96,3.29L9,12.25L11.75,15L20.71,6.04C21.1,5.65 21.1,5 20.71,4.63M7,14A3,3 0 0,0 4,17C4,18.31 2.84,19 2,19C2.92,20.22 4.5,21 6,21A4,4 0 0,0 10,17A3,3 0 0,0 7,14Z",
   reset: "M12,4C14.1,4 16.1,4.8 17.6,6.3C20.7,9.4 20.7,14.5 17.6,17.6C15.8,19.5 13.3,20.2 10.9,19.9L11.4,17.9C13.1,18.1 14.9,17.5 16.2,16.2C18.5,13.9 18.5,10.1 16.2,7.7C15.1,6.6 13.5,6 12,6V10.6L7,5.6L12,0.6V4M6.3,17.6C3.7,15 3.3,11 5.1,7.9L6.6,9.4C5.5,11.6 5.9,14.4 7.8,16.2C8.3,16.7 8.9,17.1 9.6,17.4L9,19.4C8,19 7.1,18.4 6.3,17.6Z",
   calendar: "M19,19H5V8H19M16,1V3H8V1H6V3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3H18V1M17,12H12V17H17V12Z",
   height: "M13,6.99H16L12,3L8,6.99H11V17.01H8L12,21L16,17.01H13V6.99Z",
@@ -330,6 +348,7 @@ const STRINGS = {
     confirm_reset: "Reset the {name} counter? Do it after replacing the part.",
     maintenance: "Maintenance",
     blade: "Blades",
+    brush: "Brush",
     blade_used: "{time} used",
     charging_cycles: "Charge cycles",
     collisions: "Collisions",
@@ -416,6 +435,7 @@ const STRINGS = {
     confirm_reset: "Réinitialiser le compteur {name} ? À faire après le remplacement de la pièce.",
     maintenance: "Entretien",
     blade: "Lames",
+    brush: "Brosse",
     blade_used: "{time} d'usage",
     charging_cycles: "Cycles de charge",
     collisions: "Collisions",
@@ -500,6 +520,7 @@ const STRINGS = {
     confirm_reset: "Zähler {name} zurücksetzen? Nach dem Austausch des Teils ausführen.",
     maintenance: "Wartung",
     blade: "Messer",
+    brush: "Bürste",
     blade_used: "{time} genutzt",
     charging_cycles: "Ladezyklen",
     collisions: "Kollisionen",
@@ -584,6 +605,7 @@ const STRINGS = {
     confirm_reset: "¿Restablecer el contador {name}? Hazlo tras sustituir la pieza.",
     maintenance: "Mantenimiento",
     blade: "Cuchillas",
+    brush: "Cepillo",
     blade_used: "{time} de uso",
     charging_cycles: "Ciclos de carga",
     collisions: "Colisiones",
@@ -668,6 +690,7 @@ const STRINGS = {
     confirm_reset: "Ресетовати бројач {name}? Урадите то након замене дела.",
     maintenance: "Одржавање",
     blade: "Ножеви",
+    brush: "Четка",
     blade_used: "{time} коришћења",
     charging_cycles: "Циклуси пуњења",
     collisions: "Судари",
@@ -752,6 +775,7 @@ const STRINGS = {
     confirm_reset: "Resetovati brojač {name}? Uradite to nakon zamene dela.",
     maintenance: "Održavanje",
     blade: "Noževi",
+    brush: "Četka",
     blade_used: "{time} korišćenja",
     charging_cycles: "Ciklusi punjenja",
     collisions: "Sudari",
@@ -836,6 +860,7 @@ const STRINGS = {
     confirm_reset: "Azzerare il contatore {name}? Fallo dopo aver sostituito il componente.",
     maintenance: "Manutenzione",
     blade: "Lame",
+    brush: "Spazzola",
     blade_used: "{time} di utilizzo",
     charging_cycles: "Cicli di ricarica",
     collisions: "Collisioni",
@@ -920,6 +945,7 @@ const STRINGS = {
     confirm_reset: "Teller {name} resetten? Doe dit na het vervangen van het onderdeel.",
     maintenance: "Onderhoud",
     blade: "Messen",
+    brush: "Borstel",
     blade_used: "{time} gebruikt",
     charging_cycles: "Laadcycli",
     collisions: "Botsingen",
@@ -1004,6 +1030,7 @@ const STRINGS = {
     confirm_reset: "Repor o contador {name}? Faça-o após substituir a peça.",
     maintenance: "Manutenção",
     blade: "Lâminas",
+    brush: "Escova",
     blade_used: "{time} de utilização",
     charging_cycles: "Ciclos de carga",
     collisions: "Colisões",
@@ -1088,6 +1115,7 @@ const STRINGS = {
     confirm_reset: "Zresetować licznik {name}? Zrób to po wymianie części.",
     maintenance: "Konserwacja",
     blade: "Ostrza",
+    brush: "Szczotka",
     blade_used: "{time} użycia",
     charging_cycles: "Cykle ładowania",
     collisions: "Kolizje",
@@ -1172,6 +1200,7 @@ const STRINGS = {
     confirm_reset: "Resetezi contorul {name}? Fă-o după înlocuirea piesei.",
     maintenance: "Întreținere",
     blade: "Lame",
+    brush: "Perie",
     blade_used: "{time} de utilizare",
     charging_cycles: "Cicluri de încărcare",
     collisions: "Coliziuni",
@@ -1256,6 +1285,7 @@ const STRINGS = {
     confirm_reset: "Nulstil tælleren {name}? Gør det efter udskiftning af delen.",
     maintenance: "Vedligeholdelse",
     blade: "Knive",
+    brush: "Børste",
     blade_used: "{time} brugt",
     charging_cycles: "Ladecyklusser",
     collisions: "Kollisioner",
@@ -1340,6 +1370,7 @@ const STRINGS = {
     confirm_reset: "Återställa räknaren {name}? Gör det efter byte av delen.",
     maintenance: "Underhåll",
     blade: "Knivar",
+    brush: "Borste",
     blade_used: "{time} använt",
     charging_cycles: "Laddcykler",
     collisions: "Kollisioner",
@@ -1424,6 +1455,7 @@ const STRINGS = {
     confirm_reset: "Да се нулира ли броячът {name}? Направете го след смяна на частта.",
     maintenance: "Поддръжка",
     blade: "Ножове",
+    brush: "Четка",
     blade_used: "{time} употреба",
     charging_cycles: "Цикли на зареждане",
     collisions: "Сблъсъци",
@@ -1508,6 +1540,7 @@ const STRINGS = {
     confirm_reset: "Сбросить счётчик {name}? Сделайте это после замены детали.",
     maintenance: "Обслуживание",
     blade: "Ножи",
+    brush: "Щётка",
     blade_used: "{time} наработки",
     charging_cycles: "Циклы зарядки",
     collisions: "Столкновения",
@@ -1592,6 +1625,7 @@ const STRINGS = {
     confirm_reset: "Скинути лічильник {name}? Зробіть це після заміни деталі.",
     maintenance: "Обслуговування",
     blade: "Ножі",
+    brush: "Щітка",
     blade_used: "{time} напрацювання",
     charging_cycles: "Цикли заряджання",
     collisions: "Зіткнення",
@@ -1676,6 +1710,7 @@ const STRINGS = {
     confirm_reset: "Nullázza a(z) {name} számlálót? Az alkatrész cseréje után tegye meg.",
     maintenance: "Karbantartás",
     blade: "Kések",
+    brush: "Kefe",
     blade_used: "{time} használat",
     charging_cycles: "Töltési ciklusok",
     collisions: "Ütközések",
@@ -1760,6 +1795,7 @@ const STRINGS = {
     confirm_reset: "Vynulovať počítadlo {name}? Urobte to po výmene dielu.",
     maintenance: "Údržba",
     blade: "Nože",
+    brush: "Kefa",
     blade_used: "{time} používania",
     charging_cycles: "Nabíjacie cykly",
     collisions: "Kolízie",
@@ -1844,6 +1880,7 @@ const STRINGS = {
     confirm_reset: "Vynulovat počítadlo {name}? Proveďte po výměně dílu.",
     maintenance: "Údržba",
     blade: "Nože",
+    brush: "Kartáč",
     blade_used: "{time} používání",
     charging_cycles: "Nabíjecí cykly",
     collisions: "Kolize",
@@ -1928,6 +1965,7 @@ const STRINGS = {
     confirm_reset: "Ponastavim števec {name}? Storite to po zamenjavi dela.",
     maintenance: "Vzdrževanje",
     blade: "Rezila",
+    brush: "Krtača",
     blade_used: "{time} uporabe",
     charging_cycles: "Cikli polnjenja",
     collisions: "Trki",
@@ -2012,6 +2050,7 @@ const STRINGS = {
     confirm_reset: "Atiestatīt skaitītāju {name}? Dariet to pēc detaļas nomaiņas.",
     maintenance: "Apkope",
     blade: "Asmeņi",
+    brush: "Suka",
     blade_used: "{time} lietošanas",
     charging_cycles: "Uzlādes cikli",
     collisions: "Sadursmes",
@@ -2096,6 +2135,7 @@ const STRINGS = {
     confirm_reset: "Επαναφορά του μετρητή {name}; Κάντε το μετά την αντικατάσταση του εξαρτήματος.",
     maintenance: "Συντήρηση",
     blade: "Λεπίδες",
+    brush: "Βούρτσα",
     blade_used: "{time} χρήσης",
     charging_cycles: "Κύκλοι φόρτισης",
     collisions: "Συγκρούσεις",
@@ -2385,9 +2425,26 @@ const findDevice = (hass, config) => {
   const m = resolve(hass);
   if (!m) return { error: "no_registry" };
   if (!m.devices.length) return { error: "no_device" };
-  if (!config.device) return { dev: m.devices[0] };
+  if (!config.device) return { dev: withEntities(m.devices[0], config.entities) };
   const dev = m.devices.find((d) => d.id === config.device || d.name === config.device);
-  return dev ? { dev } : { error: "unknown_device" };
+  return dev ? { dev: withEntities(dev, config.entities) } : { error: "unknown_device" };
+};
+
+// The `entities` option: entities of the user's choice under the names the cards read (battery, progress, blade_life,
+// next_start, rain…), replacing the ones found. One result per device and option, a stable object while neither
+// changes.
+const isEntityId = (v) => typeof v === "string" && /^[a-z_]+\.[a-z0-9_]+$/.test(v);
+const withEntitiesCache = new WeakMap();
+const withEntities = (dev, entities) => {
+  if (!dev || !entities || typeof entities !== "object") return dev;
+  const own = Object.keys(entities).filter((k) => /^[a-z_]+$/.test(k) && isEntityId(entities[k]));
+  if (!own.length) return dev;
+  const key = own.map((k) => `${k}=${entities[k]}`).join(",");
+  const hit = withEntitiesCache.get(dev);
+  if (hit?.key === key) return hit.result;
+  const result = { ...dev, entities: { ...dev.entities, ...Object.fromEntries(own.map((k) => [k, entities[k]])) } };
+  withEntitiesCache.set(dev, { key, result });
+  return result;
 };
 
 // ---------------------------------------------------------------------------
@@ -3373,6 +3430,11 @@ class MowerCard extends MowerBase {
       const h = hours(time);
       // Blades are usually changed every 1 to 3 months of mowing: colored from 100 h of use.
       row(ICONS.blade, this._t("blade"), { id: time.entity_id, text: this._t("blade_used", { time: fmtHours(h, this._locale()) }) }, h >= 200 ? "crit" : h >= 100 ? "warn" : "ok", null, reset("reset_blade", this._t("blade")));
+    }
+    const brush = this._s(e.brush_life);
+    if (valid(brush) && num(brush) !== null) {
+      const v = Math.max(0, Math.min(100, num(brush)));
+      row(ICONS.brush, this._t("brush"), { id: brush.entity_id, text: `${Math.round(v)} %` }, v <= 10 ? "crit" : v <= 25 ? "warn" : "ok", v, "");
     }
     const cycles = this._s(e.charging_cycles);
     if (valid(cycles) && num(cycles) !== null) row(ICONS.count, this._t("charging_cycles"), { id: cycles.entity_id, text: fmtNum(num(cycles), 0, this._locale()) }, "ok", null, reset("reset_cycles", this._t("charging_cycles")));
