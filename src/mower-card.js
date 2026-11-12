@@ -380,6 +380,8 @@ const STRINGS = {
     image_auto: "Automatic (drawn, brand colors)",
     image_none: "None",
     show_controls: "Show control buttons",
+    show_title: "Show title",
+    show_subtitle: "Show subtitle",
     show_settings: "Show mower settings",
     show_actions: "Show actions",
     show_options: "Show options",
@@ -466,6 +468,8 @@ const STRINGS = {
     image_auto: "Automatique (dessin aux couleurs de la marque)",
     image_none: "Aucune",
     show_controls: "Afficher les boutons de commande",
+    show_title: "Afficher le titre",
+    show_subtitle: "Afficher le sous-titre",
     show_settings: "Afficher les réglages de la tondeuse",
     show_actions: "Afficher les actions",
     show_options: "Afficher les options",
@@ -551,6 +555,8 @@ const STRINGS = {
     image_auto: "Automatisch (Zeichnung in Markenfarben)",
     image_none: "Keins",
     show_controls: "Bedienknöpfe anzeigen",
+    show_title: "Titel anzeigen",
+    show_subtitle: "Untertitel anzeigen",
     show_settings: "Mähereinstellungen anzeigen",
     show_actions: "Aktionen anzeigen",
     show_options: "Optionen anzeigen",
@@ -636,6 +642,8 @@ const STRINGS = {
     image_auto: "Automática (dibujo con los colores de la marca)",
     image_none: "Ninguna",
     show_controls: "Mostrar botones de control",
+    show_title: "Mostrar el título",
+    show_subtitle: "Mostrar el subtítulo",
     show_settings: "Mostrar ajustes del cortacésped",
     show_actions: "Mostrar acciones",
     show_options: "Mostrar opciones",
@@ -721,6 +729,8 @@ const STRINGS = {
     image_auto: "Аутоматски (цртеж у бојама бренда)",
     image_none: "Нема",
     show_controls: "Прикажи контролне дугмиће",
+    show_title: "Прикажи наслов",
+    show_subtitle: "Прикажи поднаслов",
     show_settings: "Прикажи подешавања косилице",
     show_actions: "Прикажи радње",
     show_options: "Прикажи опције",
@@ -806,6 +816,8 @@ const STRINGS = {
     image_auto: "Automatski (crtež u bojama brenda)",
     image_none: "Nema",
     show_controls: "Prikaži kontrolne dugmiće",
+    show_title: "Prikaži naslov",
+    show_subtitle: "Prikaži podnaslov",
     show_settings: "Prikaži podešavanja kosilice",
     show_actions: "Prikaži radnje",
     show_options: "Prikaži opcije",
@@ -891,6 +903,8 @@ const STRINGS = {
     image_auto: "Automatica (disegno nei colori del marchio)",
     image_none: "Nessuna",
     show_controls: "Mostra i pulsanti di controllo",
+    show_title: "Mostra il titolo",
+    show_subtitle: "Mostra il sottotitolo",
     show_settings: "Mostra le impostazioni del robot",
     show_actions: "Mostra le azioni",
     show_options: "Mostra le opzioni",
@@ -976,6 +990,8 @@ const STRINGS = {
     image_auto: "Automatisch (tekening in merkkleuren)",
     image_none: "Geen",
     show_controls: "Bedieningsknoppen tonen",
+    show_title: "Titel tonen",
+    show_subtitle: "Ondertitel tonen",
     show_settings: "Maaierinstellingen tonen",
     show_actions: "Acties tonen",
     show_options: "Opties tonen",
@@ -1061,6 +1077,8 @@ const STRINGS = {
     image_auto: "Automática (desenho nas cores da marca)",
     image_none: "Nenhuma",
     show_controls: "Mostrar botões de controlo",
+    show_title: "Mostrar o título",
+    show_subtitle: "Mostrar o subtítulo",
     show_settings: "Mostrar definições do corta-relva",
     show_actions: "Mostrar ações",
     show_options: "Mostrar opções",
@@ -1146,6 +1164,8 @@ const STRINGS = {
     image_auto: "Automatyczny (rysunek w kolorach marki)",
     image_none: "Brak",
     show_controls: "Pokaż przyciski sterowania",
+    show_title: "Pokaż tytuł",
+    show_subtitle: "Pokaż podtytuł",
     show_settings: "Pokaż ustawienia kosiarki",
     show_actions: "Pokaż akcje",
     show_options: "Pokaż opcje",
@@ -1231,6 +1251,8 @@ const STRINGS = {
     image_auto: "Automată (desen în culorile mărcii)",
     image_none: "Niciuna",
     show_controls: "Afișează butoanele de control",
+    show_title: "Afișează titlul",
+    show_subtitle: "Afișează subtitlul",
     show_settings: "Afișează setările robotului",
     show_actions: "Afișează acțiunile",
     show_options: "Afișează opțiunile",
@@ -1316,6 +1338,8 @@ const STRINGS = {
     image_auto: "Automatisk (tegning i mærkets farver)",
     image_none: "Intet",
     show_controls: "Vis betjeningsknapper",
+    show_title: "Vis titel",
+    show_subtitle: "Vis undertitel",
     show_settings: "Vis klipperens indstillinger",
     show_actions: "Vis handlinger",
     show_options: "Vis indstillinger",
@@ -1401,6 +1425,8 @@ const STRINGS = {
     image_auto: "Automatisk (ritning i märkets färger)",
     image_none: "Ingen",
     show_controls: "Visa kontrollknappar",
+    show_title: "Visa rubrik",
+    show_subtitle: "Visa underrubrik",
     show_settings: "Visa klipparens inställningar",
     show_actions: "Visa åtgärder",
     show_options: "Visa alternativ",
@@ -1486,6 +1512,8 @@ const STRINGS = {
     image_auto: "Автоматично (рисунка в цветовете на марката)",
     image_none: "Без",
     show_controls: "Показване на бутоните за управление",
+    show_title: "Показване на заглавието",
+    show_subtitle: "Показване на подзаглавието",
     show_settings: "Показване на настройките на косачката",
     show_actions: "Показване на действията",
     show_options: "Показване на опциите",
@@ -1571,6 +1599,8 @@ const STRINGS = {
     image_auto: "Автоматически (рисунок в цветах бренда)",
     image_none: "Нет",
     show_controls: "Показывать кнопки управления",
+    show_title: "Показывать заголовок",
+    show_subtitle: "Показывать подзаголовок",
     show_settings: "Показывать настройки газонокосилки",
     show_actions: "Показывать действия",
     show_options: "Показывать параметры",
@@ -1656,6 +1686,8 @@ const STRINGS = {
     image_auto: "Автоматично (малюнок у кольорах бренду)",
     image_none: "Немає",
     show_controls: "Показувати кнопки керування",
+    show_title: "Показувати заголовок",
+    show_subtitle: "Показувати підзаголовок",
     show_settings: "Показувати налаштування газонокосарки",
     show_actions: "Показувати дії",
     show_options: "Показувати параметри",
@@ -1741,6 +1773,8 @@ const STRINGS = {
     image_auto: "Automatikus (rajz a márka színeiben)",
     image_none: "Nincs",
     show_controls: "Vezérlőgombok megjelenítése",
+    show_title: "Cím megjelenítése",
+    show_subtitle: "Alcím megjelenítése",
     show_settings: "A fűnyíró beállításainak megjelenítése",
     show_actions: "Műveletek megjelenítése",
     show_options: "Beállítások megjelenítése",
@@ -1826,6 +1860,8 @@ const STRINGS = {
     image_auto: "Automaticky (kresba vo farbách značky)",
     image_none: "Žiadny",
     show_controls: "Zobraziť ovládacie tlačidlá",
+    show_title: "Zobraziť názov",
+    show_subtitle: "Zobraziť podnázov",
     show_settings: "Zobraziť nastavenia kosačky",
     show_actions: "Zobraziť akcie",
     show_options: "Zobraziť možnosti",
@@ -1911,6 +1947,8 @@ const STRINGS = {
     image_auto: "Automaticky (kresba v barvách značky)",
     image_none: "Žádný",
     show_controls: "Zobrazit ovládací tlačítka",
+    show_title: "Zobrazit název",
+    show_subtitle: "Zobrazit podnázev",
     show_settings: "Zobrazit nastavení sekačky",
     show_actions: "Zobrazit akce",
     show_options: "Zobrazit možnosti",
@@ -1996,6 +2034,8 @@ const STRINGS = {
     image_auto: "Samodejno (risba v barvah znamke)",
     image_none: "Brez",
     show_controls: "Prikaži gumbe za upravljanje",
+    show_title: "Prikaži naslov",
+    show_subtitle: "Prikaži podnaslov",
     show_settings: "Prikaži nastavitve kosilnice",
     show_actions: "Prikaži dejanja",
     show_options: "Prikaži možnosti",
@@ -2081,6 +2121,8 @@ const STRINGS = {
     image_auto: "Automātiski (zīmējums zīmola krāsās)",
     image_none: "Nav",
     show_controls: "Rādīt vadības pogas",
+    show_title: "Rādīt virsrakstu",
+    show_subtitle: "Rādīt apakšvirsrakstu",
     show_settings: "Rādīt pļāvēja iestatījumus",
     show_actions: "Rādīt darbības",
     show_options: "Rādīt opcijas",
@@ -2166,6 +2208,8 @@ const STRINGS = {
     image_auto: "Αυτόματη (σχέδιο στα χρώματα της μάρκας)",
     image_none: "Καμία",
     show_controls: "Εμφάνιση κουμπιών ελέγχου",
+    show_title: "Εμφάνιση τίτλου",
+    show_subtitle: "Εμφάνιση υπότιτλου",
     show_settings: "Εμφάνιση ρυθμίσεων της μηχανής",
     show_actions: "Εμφάνιση ενεργειών",
     show_options: "Εμφάνιση επιλογών",
@@ -2488,6 +2532,7 @@ const BASE_STYLE = `
   /* The title takes the room the chip leaves (flex-basis 0: a long name does not push the chip into its ellipsis)
      and keeps about four characters and its ellipsis; the chip shrinks only when even that does not fit. */
   .titles { flex: 1 1 0; min-width: 5ch; font-size: 16px; }
+  :host([hide-title]) .titles > .name, :host([hide-subtitle]) .titles > .sub { display: none; }
   .name { font-size: 16px; font-weight: 500; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .sub { font-size: 12px; color: var(--secondary-text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .warning { padding: 16px; color: color-mix(in srgb, var(--mc-warn) 50%, var(--primary-text-color)); }
@@ -2679,6 +2724,9 @@ class MowerBase extends HTMLElement {
   setConfig(config) {
     if (!config) throw new Error("Invalid configuration");
     this._config = { ...config };
+    // show_title / show_subtitle: the header's title / subtitle, hidden by the stylesheet
+    this.toggleAttribute?.("hide-title", config.show_title === false);
+    this.toggleAttribute?.("hide-subtitle", config.show_subtitle === false);
     this._html = "";
     this._lastDeps = null;
     this._update();
@@ -3775,6 +3823,8 @@ class MowerEditorBase extends HTMLElement {
 class MowerCardEditor extends MowerEditorBase {
   static get toggles() {
     return [
+      ["show_title", true],
+      ["show_subtitle", true],
       ["show_controls", true],
       ["show_settings", true],
       ["show_actions", true],
@@ -3825,6 +3875,8 @@ class MowerCardEditor extends MowerEditorBase {
 class MowerMiniCardEditor extends MowerEditorBase {
   static get toggles() {
     return [
+      ["show_title", true],
+      ["show_subtitle", true],
       ["show_controls", true],
       ["zoom", true],
     ];

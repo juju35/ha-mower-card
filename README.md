@@ -167,6 +167,8 @@ zoom: true                    # detail button at the top right
 |---|---|---|---|
 | `device` | both | First lawn mower | Device to display: its name (as shown in Home Assistant) or its device id (set by the visual editor) |
 | `title` | both | Device name | Card title |
+| `show_title` | both | `true` | Show the title in the header (e.g. `false` under a section heading of your own) |
+| `show_subtitle` | both | `true` | Show the subtitle under the title |
 | `image` | both | `auto` | Device picture: `auto` (drawn in the brand's colors, animated), `none`, or the URL of your own picture (e.g. `/local/my-mower.png`) |
 | `show_controls` | both | `true` | Start / pause, stop and dock buttons, action buttons, option toggles and maintenance reset buttons |
 | `zoom` | mini | `true` | Detail button at the top right of the mini card: it shows the full card's content (with the same options, so `show_map`, `collapsed`… can be set on the mini card too) and switches back to the compact view; a click outside the card also brings the compact view back. `false` removes the button |
