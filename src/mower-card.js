@@ -2624,6 +2624,42 @@ const focusKey = (el) => {
   return data.length ? `${el.tagName}|${JSON.stringify(data)}` : "";
 };
 
+// "A click elsewhere" is caught on the pointer, not only on the click event: on iOS (Safari and the companion app)
+// a tap on something that is not clickable (the background, an empty spot, a card with no action) sends no click to
+// the page. The handler runs when the press and the release are both outside the card (a slider dragged out of the
+// card does not count, and a scroll cancels the pointer); keyboard clicks (no click count) still go through the click
+// event. The handler keeps its own checks (dialogs opened from the card…). `tap(ev)` is for the tests.
+const watchOutside = (card, handler) => {
+  let downOutside = false;
+  const outside = (ev) => !ev.composedPath().includes(card);
+  const onDown = (ev) => {
+    downOutside = outside(ev);
+  };
+  const onUp = (ev) => {
+    if (downOutside && outside(ev)) handler(ev);
+    downOutside = false;
+  };
+  const onClick = (ev) => {
+    if (ev.detail === 0) handler(ev);
+  };
+  return {
+    on() {
+      document.addEventListener("pointerdown", onDown, true);
+      document.addEventListener("pointerup", onUp, true);
+      document.addEventListener("click", onClick, true);
+    },
+    off() {
+      document.removeEventListener("pointerdown", onDown, true);
+      document.removeEventListener("pointerup", onUp, true);
+      document.removeEventListener("click", onClick, true);
+    },
+    tap(ev) {
+      onDown(ev);
+      onUp(ev);
+    },
+  };
+};
+
 class MowerBase extends HTMLElement {
   constructor() {
     super();
@@ -2633,10 +2669,34 @@ class MowerBase extends HTMLElement {
     // Enter / Space on an element with the button role (tile, section title, chip…) acts as a click, as on a <button>
     // (which clicks on its own: left alone).
     this.shadowRoot.addEventListener("keydown", (ev) => {
+      // Used from the keyboard: the focus is kept across the rewrites again.
+      this._byPointer = false;
       if ((ev.key !== "Enter" && ev.key !== " ") || ev.target?.getAttribute?.("role") !== "button") return;
       ev.preventDefault();
       ev.target.click();
     });
+    // No rewrite of the card between the press and the release: Home Assistant updates the card several times a
+    // second, and a rewrite under the pointer replaces the element pressed, so that the click lands on the card
+    // itself and does nothing. The pending render is done once released (after the click). A press also means the
+    // pointer is in use: the focus is not put back on the clicked element after a rewrite (no focus ring).
+    this.shadowRoot.addEventListener("pointerdown", () => {
+      this._byPointer = true;
+      this._pressing = true;
+      window.addEventListener("pointerup", this._onPressEnd, true);
+      window.addEventListener("pointercancel", this._onPressEnd, true);
+    });
+    this._onPressEnd = () => {
+      window.removeEventListener("pointerup", this._onPressEnd, true);
+      window.removeEventListener("pointercancel", this._onPressEnd, true);
+      setTimeout(() => {
+        if (!this._pressing) return;
+        this._pressing = false;
+        if (this._dirty) {
+          this._dirty = false;
+          this._update();
+        }
+      }, 0);
+    };
     // Escape closes the confirmation popup (as Cancel). Listened on the window while the popup is open: a re-render
     // or a click on its text takes the focus out of the card.
     this._onKey = (ev) => {
@@ -2674,7 +2734,7 @@ class MowerBase extends HTMLElement {
   }
 
   // A click elsewhere on the page folds the sections back to their defaults (as in ha-carburants-france).
-  // A click, not a pointerdown: folding on press would shift the layout under the pointer before the click.
+  // On the release, not the press (watchOutside): folding on press would shift the layout under the pointer.
   connectedCallback() {
     // Clicks inside a dialog (the more-info opened from the card) leave the card as it is.
     this._onOutside ??= (ev) => {
@@ -2683,7 +2743,9 @@ class MowerBase extends HTMLElement {
       if (this._confirm) this._closeConfirm();
       else this._update();
     };
-    document.addEventListener("click", this._onOutside, true);
+    (this._onOutsideWatch ??= watchOutside(this, (ev) => this._onOutside(ev))).on();
+    // Back on the page after leaving it: rendered again in its default state.
+    this._update?.();
     // Reattached with the popup still open (view switch, editor): Escape keeps closing it.
     if (this._confirm) window.addEventListener("keydown", this._onKey);
     // The live camera stream stops while the card is off-screen or the tab hidden, and connects again when it shows.
@@ -2707,7 +2769,14 @@ class MowerBase extends HTMLElement {
   disconnectedCallback() {
     clearInterval(this._tick);
     this._tick = null;
-    document.removeEventListener("click", this._onOutside, true);
+    this._onOutsideWatch?.off();
+    this._pressing = false;
+    window.removeEventListener("pointerup", this._onPressEnd, true);
+    window.removeEventListener("pointercancel", this._onPressEnd, true);
+    // Left (another dashboard view, a conditional card hidden): back to the default state, so that the card does
+    // not come back unfolded or with its popup open.
+    this._toggled = new Map();
+    this._confirm = null;
     window.removeEventListener("keydown", this._onKey);
     document.removeEventListener("visibilitychange", this._onVisibility);
     this._observer?.disconnect();
@@ -2746,6 +2815,12 @@ class MowerBase extends HTMLElement {
 
   _update() {
     if (!this._hass || !this._config) return;
+    // Held while the card is pressed (see the constructor): drawn once released.
+    if (this._pressing) {
+      this._dirty = true;
+      return;
+    }
+    this._dirty = false;
     let html = this._render();
     if (this._confirm) {
       html = html.replace(/<ha-card>([\s\S]*)<\/ha-card>\s*$/, (_, inner) => `<ha-card class="dialog-open">${inner}${this._confirmHtml()}</ha-card>`);
@@ -2753,8 +2828,9 @@ class MowerBase extends HTMLElement {
     if (html === this._html) return;
     // The popup keeps its focus across the rewrite (OK, or Cancel when the user moved to it).
     const focused = this._confirm && this.shadowRoot.activeElement?.dataset?.action;
-    // Otherwise, the element of the card that has the focus (keyboard user) gets it back once rewritten.
-    const kept = this._confirm ? null : this._focusedSpot();
+    // Otherwise, the element of the card that has the focus gets it back once rewritten, for the keyboard only: after
+    // a click, it would draw the focus ring on the clicked element.
+    const kept = this._confirm || this._byPointer ? null : this._focusedSpot();
     this._html = html;
     this.shadowRoot.innerHTML = html;
     this._placeImages();
@@ -2875,6 +2951,9 @@ class MowerBase extends HTMLElement {
   }
 
   _onClick(ev) {
+    // The press is over: what the click changes is drawn at once (and a pending update with it).
+    this._pressing = false;
+    if (ev.detail === 0) this._byPointer = false;
     const path = ev.composedPath();
     const el = path.find((n) => n.dataset && (n.dataset.entity || n.dataset.action));
     // Just closed: the rest of a double click on OK does nothing.
@@ -3617,12 +3696,17 @@ class MowerMiniCard extends MowerCard {
 
   connectedCallback() {
     super.connectedCallback();
-    document.addEventListener("click", this._onUnzoom, true);
+    (this._onUnzoomWatch ??= watchOutside(this, (ev) => this._onUnzoom(ev))).on();
+    // Back on the page after leaving it: rendered again in its default state.
+    this._update?.();
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    document.removeEventListener("click", this._onUnzoom, true);
+    this._onUnzoomWatch?.off();
+    // Left (another dashboard view, a conditional card hidden): back to the default state, so that the card does
+    // not come back unfolded or with its popup open.
+    this._zoomed = false;
   }
 
   getCardSize() {
