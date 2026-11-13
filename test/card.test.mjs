@@ -273,6 +273,30 @@ test("folding: a tap elsewhere (pointer), not a press in the card released outsi
   mini.disconnectedCallback();
 });
 
+test("no rewrite under a press: an update waits for the release, a click draws at once", async () => {
+  const card = newCard(makeHass());
+  const before = card.shadowRoot.innerHTML;
+  // Pressed: an update (here a section folded from elsewhere) is held, the element pressed stays.
+  card.shadowRoot.listeners.pointerdown({});
+  card._toggled = new Map([["stats", true]]);
+  card._update();
+  assert.equal(card.shadowRoot.innerHTML, before);
+  // Released without a click (dragged away): the pending update is drawn right after.
+  card._onPressEnd();
+  await new Promise((r) => setTimeout(r, 5));
+  assert.notEqual(card.shadowRoot.innerHTML, before);
+  // Pressed then clicked: the click draws what it changes at once.
+  card.shadowRoot.listeners.pointerdown({});
+  const unfolded = card.shadowRoot.innerHTML;
+  click(card, { action: "toggle_section", section: "stats" });
+  assert.notEqual(card.shadowRoot.innerHTML, unfolded);
+  assert.equal(card._pressing, false);
+  // A press marks the pointer as in use (no focus put back), a key the keyboard.
+  assert.equal(card._byPointer, true);
+  card.shadowRoot.listeners.keydown({ key: "Tab", target: {} });
+  assert.equal(card._byPointer, false);
+});
+
 test("the map is shown while mowing by default, always or never on request", () => {
   const goat = (config) => newCard(makeHass(), { device: "GOAT G1", ...config }).shadowRoot.innerHTML;
   assert.doesNotMatch(goat({}), /data-map=/, "docked: no map");
