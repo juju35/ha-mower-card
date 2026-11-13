@@ -112,7 +112,8 @@ export const load = () => {
   return vm.runInContext(
     `${source}
     ({ fmtHours, fmtDistance, hours, statusClass, esc, resolve, ago, lang, intlLocale, RTF, mowerSvg, activityOf, brandOf, findDevice, BRANDS, PLATFORMS, STRINGS, MowerCard: customElements.get("mower-card"),
-       MowerMiniCard: customElements.get("mower-mini-card"), MowerCardEditor: customElements.get("mower-card-editor"), window, document })`,
+       MowerMiniCard: customElements.get("mower-mini-card"), MowerCardEditor: customElements.get("mower-card-editor"),
+       MowerMiniCardEditor: customElements.get("mower-mini-card-editor"), window, document })`,
     sandbox,
   );
 };

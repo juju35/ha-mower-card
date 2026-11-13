@@ -173,18 +173,18 @@ zoom: true                    # detail button at the top right
 | `show_subtitle` | both | `true` | Show the subtitle under the title |
 | `image` | both | `auto` | Device picture: `auto` (drawn in the brand's colors, animated), `none`, or the URL of your own picture (e.g. `/local/my-mower.png`) |
 | `show_controls` | both | `true` | Start / pause, stop and dock buttons, action buttons, option toggles and maintenance reset buttons |
-| `zoom` | mini | `true` | Detail button at the top right of the mini card: it shows the full card's content (with the same options, so `show_map`, `collapsed`… can be set on the mini card too) and switches back to the compact view; a click outside the card also brings the compact view back. `false` removes the button |
-| `show_settings` | full | `true` | Mower settings tags: work area or zone, mode, cutting height, headlights, schedule on or off |
-| `show_actions` | full | `true` | Actions section: the integration's buttons (edge cut, confirm error, relocate, continue last job…) |
-| `show_options` | full | `true` | Options section: the integration's switches (schedule, party mode, lock, stay-out zones…) |
-| `show_maintenance` | full | `true` | Maintenance: blades, charge cycles, collisions |
-| `show_stats` | full | `true` | Statistics |
-| `show_camera` | full | `true` | Camera section: the live cameras of the mower, one tab per camera, played by Home Assistant's own player (WebRTC, HLS or MJPEG). Folded by default: the stream only runs while the section is unfolded and the card is visible on screen, and stops when it is folded (a click outside the card folds it), scrolled away or in a hidden tab — a mower on a cellular connection meters its streaming time. The button on the picture opens the camera's dialog |
-| `show_map` | full | `mowing` | Map of the garden: `mowing` (only while the mower works), `always` (or `true`) or `never` (or `false`) |
-| `collapsed` | full | `[camera, stats]` | Sections folded by default, among `actions`, `options`, `maintenance`, `stats` and `camera` (`[]` to unfold everything). Click a section title (or Tab to it and press Enter or Space) to fold or unfold it |
-| `map_entity` | full | — | Camera or image entity to show as the map instead of the integration's (Ecovacs GOAT map image, Bosch Indego camera) |
-| `camera_entity` | full | — | Camera entity for the camera section, instead of the streaming cameras of the device (a garden camera pointed at the lawn, say) |
-| `entities` | both | — | Entities of your choice under the names the cards read, replacing the ones found: `battery`, `progress`, `next_start`, `work_area`, `mode`, `error`, `rain`, `blade_life`, `brush_life`, `blade_time`, `charging_cycles`, `total_distance`, `cutting_height`… For example `entities: { blade_life: sensor.my_blade_health }` |
+| `zoom` | mini | `true` | Detail button at the top right of the mini card: it shows the full card's content (with the same options, so `show_map`, `collapsed`, `map_entity`… can be set on the mini card too, in its visual editor as well) and switches back to the compact view; a click outside the card also brings the compact view back. `false` removes the button |
+| `show_settings` | both | `true` | Mower settings tags: work area or zone, mode, cutting height, headlights, schedule on or off |
+| `show_actions` | both | `true` | Actions section: the integration's buttons (edge cut, confirm error, relocate, continue last job…) |
+| `show_options` | both | `true` | Options section: the integration's switches (schedule, party mode, lock, stay-out zones…) |
+| `show_maintenance` | both | `true` | Maintenance: blades, charge cycles, collisions |
+| `show_stats` | both | `true` | Statistics |
+| `show_camera` | both | `true` | Camera section: the live cameras of the mower, one tab per camera, played by Home Assistant's own player (WebRTC, HLS or MJPEG). Folded by default: the stream only runs while the section is unfolded and the card is visible on screen, and stops when it is folded (a click outside the card folds it), scrolled away or in a hidden tab — a mower on a cellular connection meters its streaming time. The button on the picture opens the camera's dialog |
+| `show_map` | both | `mowing` | Map of the garden: `mowing` (only while the mower works), `always` (or `true`) or `never` (or `false`) |
+| `collapsed` | both | `[camera, stats]` | Sections folded by default, among `actions`, `options`, `maintenance`, `stats` and `camera` (`[]` to unfold everything). Click a section title (or Tab to it and press Enter or Space) to fold or unfold it |
+| `map_entity` | both | — | Camera or image entity to show as the map instead of the integration's (Ecovacs GOAT map image, Bosch Indego camera) |
+| `camera_entity` | both | — | Camera entity for the camera section, instead of the streaming cameras of the device (a garden camera pointed at the lawn, say) |
+| `entities` | both | — | Entities of your choice under the names the cards read, replacing the ones found: `battery`, `progress`, `next_start`, `work_area`, `mode`, `error`, `rain`, `blade_life`, `brush_life`, `blade_time`, `charging_cycles`, `total_distance`, `cutting_height`… For example `entities: { blade_life: sensor.my_blade_health }`. YAML only (the visual editor keeps it) |
 | `language` | both | Auto | Force language: `fr`, `en`, `de`, `es`, `sr`, `sr-Latn`, `it`, `nl`, `pt`, `pl`, `ro`, `da`, `sv`, `bg`, `ru`, `uk`, `hu`, `sk`, `cs`, `sl`, `lv` or `el` (auto-detects from HA settings) |
 
 ## Screenshots

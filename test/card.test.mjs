@@ -347,6 +347,22 @@ test("the editor lists the mowers and keeps the YAML minimal", () => {
   assert.deepEqual(plain(events.at(-1).detail.config), { device: "automower", show_stats: false });
 });
 
+test("the mini card editor offers the options of its detail view", () => {
+  const names = (schema) => schema.flatMap((s) => (s.schema ? names(s.schema) : [s.name]));
+  const editor = (Editor) => {
+    const ed = new Editor();
+    ed.setConfig({ device: "automower" });
+    ed.hass = makeHass();
+    return ed;
+  };
+  const mini = editor(mc.MowerMiniCardEditor);
+  const miniNames = names(mini._form.schema);
+  for (const name of names(editor(mc.MowerCardEditor)._form.schema)) assert.ok(miniNames.includes(name), `mini editor misses ${name}`);
+  assert.ok(miniNames.includes("zoom"));
+  assert.ok(!miniNames.includes("entities"));
+  assert.equal(mini._form.data.show_map, "mowing");
+});
+
 test("the live cameras get their own section, folded by default, with a tab per camera; a picture-only camera is the map", () => {
   const luba = (config = {}) => newCard(makeHass(), { device: "Luba 2 AWD", ...config }).shadowRoot.innerHTML;
   let html = luba({ collapsed: ["camera"] });
