@@ -3956,14 +3956,10 @@ class MowerCardEditor extends MowerEditorBase {
   }
 }
 
-class MowerMiniCardEditor extends MowerEditorBase {
+// The mini card's detail view is the full card: its editor offers the full card's options, plus the detail button.
+class MowerMiniCardEditor extends MowerCardEditor {
   static get toggles() {
-    return [
-      ["show_title", true],
-      ["show_subtitle", true],
-      ["show_controls", true],
-      ["zoom", true],
-    ];
+    return [...MowerCardEditor.toggles, ["zoom", true]];
   }
 }
 

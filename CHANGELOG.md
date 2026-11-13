@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.2 - 2026-11-14
+
+### Fixes
+- **Mini card visual editor**: its detail view is the full card, but its editor offered only the title, subtitle, controls and detail button options. It now offers every option of the full card too: map, settings, actions, options, maintenance, statistics and camera sections, folded sections, map and camera entities.
+- **README**: these options are marked as working on both cards, and `entities` is marked as YAML only (the visual editor keeps it).
+
 ## 1.4.1 - 2026-11-13
 
 ### Fixes
