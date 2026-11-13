@@ -242,6 +242,37 @@ test("a click inside the more-info dialog keeps the sections unfolded", () => {
   card.disconnectedCallback();
 });
 
+test("folding: a tap elsewhere (pointer), not a press in the card released outside; leaving the page folds back too", () => {
+  const card = newCard(makeHass());
+  card.connectedCallback();
+  const outside = { composedPath: () => [{ tagName: "DIV" }] };
+  click(card, { action: "toggle_section", section: "stats" });
+  // Pressed in the card (a slider) and released outside: nothing folds.
+  card._onOutsideWatch.tap({ composedPath: () => [card] });
+  assert.equal(card._toggled.size, 1);
+  // A tap on a spot that sends no click (iOS): the pointer alone folds it.
+  card._onOutsideWatch.tap(outside);
+  assert.equal(card._toggled.size, 0);
+  // Left with a section open and back on the page: folded.
+  click(card, { action: "toggle_section", section: "stats" });
+  card.disconnectedCallback();
+  card.connectedCallback();
+  assert.equal(card._toggled.size, 0);
+  card.disconnectedCallback();
+  // The mini card comes back compact.
+  const mini = newCard(makeHass(), {}, mc.MowerMiniCard);
+  mini.connectedCallback();
+  mini._toggleZoom({ detail: 1 });
+  assert.match(mini.shadowRoot.innerHTML, /data-section="stats"/);
+  mini._onUnzoomWatch.tap(outside);
+  assert.doesNotMatch(mini.shadowRoot.innerHTML, /data-section="stats"/);
+  mini._toggleZoom({ detail: 1 });
+  mini.disconnectedCallback();
+  mini.connectedCallback();
+  assert.doesNotMatch(mini.shadowRoot.innerHTML, /data-section="stats"/);
+  mini.disconnectedCallback();
+});
+
 test("the map is shown while mowing by default, always or never on request", () => {
   const goat = (config) => newCard(makeHass(), { device: "GOAT G1", ...config }).shadowRoot.innerHTML;
   assert.doesNotMatch(goat({}), /data-map=/, "docked: no map");

@@ -2624,6 +2624,42 @@ const focusKey = (el) => {
   return data.length ? `${el.tagName}|${JSON.stringify(data)}` : "";
 };
 
+// "A click elsewhere" is caught on the pointer, not only on the click event: on iOS (Safari and the companion app)
+// a tap on something that is not clickable (the background, an empty spot, a card with no action) sends no click to
+// the page. The handler runs when the press and the release are both outside the card (a slider dragged out of the
+// card does not count, and a scroll cancels the pointer); keyboard clicks (no click count) still go through the click
+// event. The handler keeps its own checks (dialogs opened from the card…). `tap(ev)` is for the tests.
+const watchOutside = (card, handler) => {
+  let downOutside = false;
+  const outside = (ev) => !ev.composedPath().includes(card);
+  const onDown = (ev) => {
+    downOutside = outside(ev);
+  };
+  const onUp = (ev) => {
+    if (downOutside && outside(ev)) handler(ev);
+    downOutside = false;
+  };
+  const onClick = (ev) => {
+    if (ev.detail === 0) handler(ev);
+  };
+  return {
+    on() {
+      document.addEventListener("pointerdown", onDown, true);
+      document.addEventListener("pointerup", onUp, true);
+      document.addEventListener("click", onClick, true);
+    },
+    off() {
+      document.removeEventListener("pointerdown", onDown, true);
+      document.removeEventListener("pointerup", onUp, true);
+      document.removeEventListener("click", onClick, true);
+    },
+    tap(ev) {
+      onDown(ev);
+      onUp(ev);
+    },
+  };
+};
+
 class MowerBase extends HTMLElement {
   constructor() {
     super();
@@ -2674,7 +2710,7 @@ class MowerBase extends HTMLElement {
   }
 
   // A click elsewhere on the page folds the sections back to their defaults (as in ha-carburants-france).
-  // A click, not a pointerdown: folding on press would shift the layout under the pointer before the click.
+  // On the release, not the press (watchOutside): folding on press would shift the layout under the pointer.
   connectedCallback() {
     // Clicks inside a dialog (the more-info opened from the card) leave the card as it is.
     this._onOutside ??= (ev) => {
@@ -2683,7 +2719,9 @@ class MowerBase extends HTMLElement {
       if (this._confirm) this._closeConfirm();
       else this._update();
     };
-    document.addEventListener("click", this._onOutside, true);
+    (this._onOutsideWatch ??= watchOutside(this, (ev) => this._onOutside(ev))).on();
+    // Back on the page after leaving it: rendered again in its default state.
+    this._update?.();
     // Reattached with the popup still open (view switch, editor): Escape keeps closing it.
     if (this._confirm) window.addEventListener("keydown", this._onKey);
     // The live camera stream stops while the card is off-screen or the tab hidden, and connects again when it shows.
@@ -2707,7 +2745,11 @@ class MowerBase extends HTMLElement {
   disconnectedCallback() {
     clearInterval(this._tick);
     this._tick = null;
-    document.removeEventListener("click", this._onOutside, true);
+    this._onOutsideWatch?.off();
+    // Left (another dashboard view, a conditional card hidden): back to the default state, so that the card does
+    // not come back unfolded or with its popup open.
+    this._toggled = new Map();
+    this._confirm = null;
     window.removeEventListener("keydown", this._onKey);
     document.removeEventListener("visibilitychange", this._onVisibility);
     this._observer?.disconnect();
@@ -3617,12 +3659,17 @@ class MowerMiniCard extends MowerCard {
 
   connectedCallback() {
     super.connectedCallback();
-    document.addEventListener("click", this._onUnzoom, true);
+    (this._onUnzoomWatch ??= watchOutside(this, (ev) => this._onUnzoom(ev))).on();
+    // Back on the page after leaving it: rendered again in its default state.
+    this._update?.();
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    document.removeEventListener("click", this._onUnzoom, true);
+    this._onUnzoomWatch?.off();
+    // Left (another dashboard view, a conditional card hidden): back to the default state, so that the card does
+    // not come back unfolded or with its popup open.
+    this._zoomed = false;
   }
 
   getCardSize() {

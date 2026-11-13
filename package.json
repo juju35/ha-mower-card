@@ -1,6 +1,6 @@
 {
   "name": "ha-mower-card",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Lovelace cards for Home Assistant to monitor and control robot lawn mowers (Husqvarna Automower, Ecovacs GOAT, Worx Landroid, Mammotion, ZCS, Bosch Indego, Gardena and any lawn_mower integration).",
   "private": true,
   "type": "module",
