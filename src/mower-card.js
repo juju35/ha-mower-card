@@ -2738,8 +2738,20 @@ const BASE_STYLE = `
   /* Classic header: the detail button in the card's top right corner, out of the title row. */
   .header:has(> .zoom) { position: relative; padding-right: 44px; }
   .header > .zoom { position: absolute; top: 12px; right: 12px; margin: 0; box-shadow: inset 0 0 0 1px var(--divider-color, rgba(127,127,127,.3)); }
+  /* Title row (both headers): the name, then the status pill right after it, only when the whole name and the whole
+     label fit there (measured by the card, see _fitPill); else the pill takes a line of its own under the subtitle. */
+  .trow { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .trow .name { flex: 0 1 auto; min-width: 5ch; }
+  .trow .chip { flex: none; max-width: none; }
+  .titles.below { display: flex; flex-direction: column; }
+  .titles.below .trow { display: contents; }
+  .titles.below .name { order: 0; } .titles.below .state { order: 1; } .titles.below .sub { order: 2; }
+  .titles.below .chip { order: 3; align-self: flex-start; max-width: 100%; margin-top: 2px; }
+  /* No room for the whole label, even on its own line: the dot only (its text stays in title and aria-label). */
+  .titles.dot-only .chip { padding: 0; width: 16px; height: 16px; justify-content: center; }
+  .titles.dot-only .chip .chip-text { display: none; }
   /* Narrow card: the status chip keeps only its colored dot (its text stays in title and aria-label). */
-  @container mc-card (max-width: 230px) {
+  @container mc-card (max-width: 200px) {
     .chip { padding: 4px; flex: none; }
     .chip-text { display: none; }
   }
@@ -2796,10 +2808,6 @@ const BANNER_STYLE = `
   .banner .type-icon .logo { box-shadow: 0 0 0 1px rgba(13,42,69,.16), 0 1px 3px rgba(13,42,69,.18); background: #fff; }
   .banner .titles { flex: 1 1 auto; display: flex; flex-direction: column; gap: 1px; container: mc-titles / inline-size; }
   .banner .name { font-size: 16px; }
-  /* Title row: the name, then the status pill right after it with its whole label (the name gives way first, down to
-     four characters); when it does not fit there, the pill gets a line of its own under the subtitle (see below). */
-  .banner .trow { display: flex; align-items: center; gap: 8px; min-width: 0; }
-  .banner .trow .name { flex: 0 1 auto; min-width: 5ch; }
   .banner .chip { flex: none; max-width: none; line-height: 16px;
                   background: color-mix(in srgb, var(--c) 18%, rgba(255,255,255,.78)); color: color-mix(in srgb, var(--c) 45%, #0d2a45); }
   .banner.night .chip { background: color-mix(in srgb, var(--c) 30%, rgba(8,18,38,.55)); color: color-mix(in srgb, var(--c) 35%, #ffffff); }
@@ -2826,12 +2834,6 @@ const BANNER_STYLE = `
   @container mc-card (max-width: 300px) {
     .banner .state .batt-pct { display: none; }
   }
-  /* The pill takes a line of its own, under the subtitle, when the title row has no room for the whole pill beside a
-     name cut down to four characters (measured by the card, see _fitPill). */
-  .banner .titles.below .trow { display: contents; }
-  .banner .titles.below .name { order: 0; }
-  .banner .titles.below .state { order: 1; } .banner .titles.below .sub { order: 2; }
-  .banner .titles.below .chip { order: 3; align-self: flex-start; max-width: 100%; margin-top: 2px; }
   @container mc-card (max-width: 200px) {
     .banner .chip { padding: 0; width: 16px; height: 16px; justify-content: center; }
     .banner .chip .chip-text { display: none; }
@@ -2860,14 +2862,11 @@ const DIALOG_STYLE = `
 const DIALOG_TAGS = new Set(["HA-MORE-INFO-DIALOG", "HA-DIALOG", "DIALOG"]);
 
 // True for a click outside `card` that is not in a dialog opened from it (more-info, say).
-// The width of an element's first four characters and an ellipsis, in its own font: the least a cut title keeps.
-let fourCtx;
-const fourChars = (el) => {
-  const cs = getComputedStyle(el);
-  fourCtx ??= document.createElement("canvas").getContext?.("2d");
-  if (!fourCtx) return 0;
-  fourCtx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
-  return fourCtx.measureText(`${[...el.textContent.trim()].slice(0, 4).join("")}\u2026`).width;
+// The whole width of an element's text, in fractional pixels, even when it is cut with an ellipsis.
+const textWidth = (el) => {
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  return Math.max(el.scrollWidth, range.getBoundingClientRect().width);
 };
 
 const isOutside = (card, ev) => {
@@ -3065,20 +3064,36 @@ class MowerBase extends HTMLElement {
     }, 60000);
   }
 
-  // The banner's status pill goes right after the title when its whole label fits there beside a title cut down to
-  // four characters; otherwise it takes a line of its own under the subtitle (.titles.below). Measured (in fractional
-  // pixels), so that a short title keeps its pill beside it whatever room the picture leaves.
+  // The status pill goes right after the title only when the whole title and the whole label fit there; otherwise it
+  // takes a line of its own under the subtitle (.titles.below, the subtitle kept to one line). In the banner, when the
+  // title, the subtitle and the pill do not fit above the lawn strip, or when the label is wider than the line, the
+  // pill keeps its dot only (.titles.dot-only, back beside the title when the dot fits there). Measured after render
+  // (fractional pixels), so that it holds in every language.
   _fitPill() {
-    for (const t of this.shadowRoot?.querySelectorAll?.(".banner .titles") || []) {
+    for (const t of this.shadowRoot?.querySelectorAll?.(".titles") || []) {
       const chip = t.querySelector(".trow > .chip");
       if (!chip?.getBoundingClientRect) continue;
-      t.classList.remove("below");
+      t.classList.remove("below", "dot-only");
       const row = chip.parentElement;
       const name = row.querySelector(".name");
-      const shown = name && getComputedStyle(name).display !== "none";
-      const gap = parseFloat(getComputedStyle(row).columnGap) || 0;
-      const title = shown ? Math.min(name.scrollWidth, Math.max(parseFloat(getComputedStyle(name).minWidth) || 0, fourChars(name))) + gap : 0;
-      if (title + chip.getBoundingClientRect().width > row.getBoundingClientRect().width + 0.5) t.classList.add("below");
+      const fits = () => {
+        const shown = name && getComputedStyle(name).display !== "none";
+        const title = shown ? textWidth(name) + (parseFloat(getComputedStyle(row).columnGap) || 0) : 0;
+        return title + chip.getBoundingClientRect().width <= row.getBoundingClientRect().width + 0.5;
+      };
+      if (fits()) continue;
+      t.classList.add("below");
+      for (const sub of t.querySelectorAll(".sub, .state")) sub.title = sub.scrollWidth > sub.clientWidth ? sub.textContent.trim() : "";
+      const banner = t.closest(".banner");
+      const text = chip.querySelector(".chip-text");
+      const tb = t.getBoundingClientRect();
+      const bb = banner?.getBoundingClientRect();
+      const ground = banner ? parseFloat(getComputedStyle(banner).getPropertyValue("--g")) || 0 : 0;
+      const tall = !!bb && (tb.top < bb.top - 0.5 || tb.bottom > bb.bottom - ground + 0.5);
+      if (!tall && !(text && text.scrollWidth > text.clientWidth + 0.5)) continue;
+      t.classList.add("dot-only");
+      t.classList.remove("below");
+      if (!fits()) t.classList.add("below");
     }
   }
 
@@ -3548,10 +3563,9 @@ class MowerBase extends HTMLElement {
       <div class="header">
         ${this._logo(dev, status)}
         <div class="titles">
-          <div class="name">${esc(c.title || dev.name)}</div>
+          <div class="trow"><div class="name">${esc(c.title || dev.name)}</div>${this._statusChip(dev, status)}</div>
           ${sub ? `<div class="sub">${esc(sub)}</div>` : ""}
         </div>
-        ${this._statusChip(dev, status)}
         ${this._zoomButton()}
       </div>`;
   }
