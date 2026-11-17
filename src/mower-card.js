@@ -195,13 +195,14 @@ const gardenSvg = (uid) => `<svg class="mc-scene" viewBox="0 0 200 80" preserveA
     </g></g>
   </svg>`;
 
-// Night picture: forced by illustration_theme, else the sun below the horizon, else Home Assistant's dark mode.
+// Night picture: forced by illustration_theme, else the sun below the horizon OR Home Assistant's dark mode (the dark
+// theme wins even while the sun is up; with no usable sun.sun the dark mode alone decides).
 const isNight = (hass, config) => {
   const theme = config?.illustration_theme;
   if (theme === "night") return true;
   if (theme === "day") return false;
   const sun = hass?.states?.["sun.sun"];
-  if (sun && !["unknown", "unavailable", ""].includes(String(sun.state))) return sun.state === "below_horizon";
+  if (sun && !["unknown", "unavailable", ""].includes(String(sun.state))) return sun.state === "below_horizon" || !!hass?.themes?.darkMode;
   return !!hass?.themes?.darkMode;
 };
 
@@ -246,7 +247,7 @@ const PLATFORMS = {
 const brandOf = (dev) => PLATFORMS[dev.platform] || "generic";
 const brandFor = (dev) => BRANDS[brandOf(dev)];
 // Accent of the device's brand for the current theme, overriding the default green of the shared styles.
-// The day / night shades are kept apart for the illustrated header, whose sky follows the sun rather than the theme.
+// The day / night shades are kept apart for the illustrated header, which can be night with a light theme (sunset).
 const accentStyle = (dev, hass) => {
   const a = brandFor(dev).accent;
   return `:host { --mc-accent: ${a[hass?.themes?.darkMode ? 1 : 0]}; --mc-accent-day: ${a[0]}; --mc-accent-night: ${a[1]}; }`;

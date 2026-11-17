@@ -4,9 +4,12 @@
 
 ### Features
 - **Illustrated header** on the full and mini cards (90 px): a garden under a day or night sky, with the card's own drawn mower (brand colours, same model choice and animations as before) on a 10 px lawn strip running edge to edge, at its charging station while docked, charging or returning, out on the lawn while mowing, in error or waiting for the rain. The icon, the name, the status with the battery level (and the next start on the full card) sit on the sky; the brand logo stays as a badge on the icon. The picture moves from beside the battery into the header.
-- **Night sky** while `sun.sun` is below the horizon (else with Home Assistant's dark theme), forced with `illustration_theme: day | night`; `illustration: false` brings back the classic header. Both options are in the visual editor of both cards. Animations stop with the system's reduced-motion setting.
+- **Night sky** while `sun.sun` is below the horizon or with Home Assistant's dark theme, forced with `illustration_theme: day | night`; `illustration: false` brings back the classic header. Both options are in the visual editor of both cards. Animations stop with the system's reduced-motion setting.
 - **Status colour of the header icon**, in both headers and both cards: working (mowing, returning) in the state colour (Home Assistant's lawn mower colour, else the brand accent), charging green, waiting (paused, rain) amber, error red, resting grey.
 - **Status pill in the illustrated header**: the coloured dot and the status sit right after the name, in the header icon's colour, the battery level on the line below; when the title row is too narrow the pill takes a line of its own under the subtitle, and on the narrowest cards only its dot stays. The mini card's detail button is a small frosted round button in the banner's top right corner (in the card's corner with the classic header).
+
+### Fixes
+- Night picture with the dark theme even while the sun is up (`illustration_theme: auto`): the header is night when `sun.sun` is below the horizon or Home Assistant's theme is dark; `day` / `night` still force it.
 
 ## 1.4.2 - 2026-11-14
 
