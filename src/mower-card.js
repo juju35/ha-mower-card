@@ -2793,8 +2793,11 @@ const BANNER_STYLE = `
                      display: block; }
   .banner .picture img { display: block; height: 62px; width: auto; max-width: 100%; object-fit: contain; object-position: right bottom;
                          filter: drop-shadow(0 2px 3px rgba(0,0,0,.18)); }
-  .banner .picture.lawnLidar img { height: 68px; }
-  .banner .picture.station img { height: 80px; }
+  /* Explicit widths (height × 160 / the crop's height, MOWER_CROPS): the SVG has no intrinsic size, and WebKit would
+     size the absolute box from a 300 px default otherwise, the mower then landing on the text. */
+  .banner .picture.lawn img { width: 118px; }
+  .banner .picture.lawnLidar img { height: 68px; width: 118px; }
+  .banner .picture.station img { height: 80px; width: 133px; }
   .banner .picture.custom img { height: 72px; }
   /* Icon and text on the sky, up to where the garden starts. */
   .banner .htext { position: absolute; left: 14px; top: 0; bottom: var(--g); right: calc(var(--scene-w) + 4px);
