@@ -2796,11 +2796,11 @@ const BANNER_STYLE = `
   .banner .type-icon .logo { box-shadow: 0 0 0 1px rgba(13,42,69,.16), 0 1px 3px rgba(13,42,69,.18); background: #fff; }
   .banner .titles { flex: 1 1 auto; display: flex; flex-direction: column; gap: 1px; container: mc-titles / inline-size; }
   .banner .name { font-size: 16px; }
-  /* Title row: the name, then the status pill right after it (the name gives way first, down to about four
-     characters); on a narrow card the pill gets a line of its own under the subtitle (see below). */
+  /* Title row: the name, then the status pill right after it with its whole label (the name gives way first, down to
+     four characters); when it does not fit there, the pill gets a line of its own under the subtitle (see below). */
   .banner .trow { display: flex; align-items: center; gap: 8px; min-width: 0; }
   .banner .trow .name { flex: 0 1 auto; min-width: 5ch; }
-  .banner .chip { flex: none; max-width: 51%; line-height: 16px;
+  .banner .chip { flex: none; max-width: none; line-height: 16px;
                   background: color-mix(in srgb, var(--c) 18%, rgba(255,255,255,.78)); color: color-mix(in srgb, var(--c) 45%, #0d2a45); }
   .banner.night .chip { background: color-mix(in srgb, var(--c) 30%, rgba(8,18,38,.55)); color: color-mix(in srgb, var(--c) 35%, #ffffff); }
   .banner .chip .dot { width: 7px; height: 7px; }
@@ -2826,14 +2826,12 @@ const BANNER_STYLE = `
   @container mc-card (max-width: 300px) {
     .banner .state .batt-pct { display: none; }
   }
-  /* The pill takes a line of its own, under the subtitle, when the title row is too narrow for the name and the
-     whole pill (a narrow card, or the text squeezed by the garden). */
-  @container mc-titles (max-width: 190px) {
-    .banner .trow { display: contents; }
-    .banner .titles .name { order: 0; }
-    .banner .state { order: 1; } .banner .sub { order: 2; }
-    .banner .titles .chip { order: 3; align-self: flex-start; max-width: 100%; margin-top: 2px; }
-  }
+  /* The pill takes a line of its own, under the subtitle, when the title row has no room for the whole pill beside a
+     name cut down to four characters (measured by the card, see _fitPill). */
+  .banner .titles.below .trow { display: contents; }
+  .banner .titles.below .name { order: 0; }
+  .banner .titles.below .state { order: 1; } .banner .titles.below .sub { order: 2; }
+  .banner .titles.below .chip { order: 3; align-self: flex-start; max-width: 100%; margin-top: 2px; }
   @container mc-card (max-width: 200px) {
     .banner .chip { padding: 0; width: 16px; height: 16px; justify-content: center; }
     .banner .chip .chip-text { display: none; }
@@ -2862,6 +2860,16 @@ const DIALOG_STYLE = `
 const DIALOG_TAGS = new Set(["HA-MORE-INFO-DIALOG", "HA-DIALOG", "DIALOG"]);
 
 // True for a click outside `card` that is not in a dialog opened from it (more-info, say).
+// The width of an element's first four characters and an ellipsis, in its own font: the least a cut title keeps.
+let fourCtx;
+const fourChars = (el) => {
+  const cs = getComputedStyle(el);
+  fourCtx ??= document.createElement("canvas").getContext?.("2d");
+  if (!fourCtx) return 0;
+  fourCtx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+  return fourCtx.measureText(`${[...el.textContent.trim()].slice(0, 4).join("")}\u2026`).width;
+};
+
 const isOutside = (card, ev) => {
   const path = ev.composedPath();
   return !path.includes(card) && !path.some((n) => DIALOG_TAGS.has(n.tagName));
@@ -3023,6 +3031,18 @@ class MowerBase extends HTMLElement {
       else this._update();
     };
     (this._onOutsideWatch ??= watchOutside(this, (ev) => this._onOutside(ev))).on();
+    // A new width (or the web font loaded): the status pill is fitted again, in the next frame.
+    if (typeof ResizeObserver === "function") {
+      this._resize ??= new ResizeObserver((entries) => {
+        const w = Math.round(entries.at(-1).contentRect.width);
+        if (w === this._fitWidth) return;
+        this._fitWidth = w;
+        cancelAnimationFrame(this._fitFrame);
+        this._fitFrame = requestAnimationFrame(() => this._fitPill());
+      });
+      this._resize.observe(this);
+    }
+    document.fonts?.ready?.then(() => this._fitPill());
     // Back on the page after leaving it: rendered again in its default state.
     this._update?.();
     // Reattached with the popup still open (view switch, editor): Escape keeps closing it.
@@ -3045,9 +3065,28 @@ class MowerBase extends HTMLElement {
     }, 60000);
   }
 
+  // The banner's status pill goes right after the title when its whole label fits there beside a title cut down to
+  // four characters; otherwise it takes a line of its own under the subtitle (.titles.below). Measured (in fractional
+  // pixels), so that a short title keeps its pill beside it whatever room the picture leaves.
+  _fitPill() {
+    for (const t of this.shadowRoot?.querySelectorAll?.(".banner .titles") || []) {
+      const chip = t.querySelector(".trow > .chip");
+      if (!chip?.getBoundingClientRect) continue;
+      t.classList.remove("below");
+      const row = chip.parentElement;
+      const name = row.querySelector(".name");
+      const shown = name && getComputedStyle(name).display !== "none";
+      const gap = parseFloat(getComputedStyle(row).columnGap) || 0;
+      const title = shown ? Math.min(name.scrollWidth, Math.max(parseFloat(getComputedStyle(name).minWidth) || 0, fourChars(name))) + gap : 0;
+      if (title + chip.getBoundingClientRect().width > row.getBoundingClientRect().width + 0.5) t.classList.add("below");
+    }
+  }
+
   disconnectedCallback() {
     clearInterval(this._tick);
     this._tick = null;
+    this._resize?.disconnect();
+    this._fitWidth = null;
     this._onOutsideWatch?.off();
     this._pressing = false;
     window.removeEventListener("pointerup", this._onPressEnd, true);
@@ -3112,6 +3151,7 @@ class MowerBase extends HTMLElement {
     const kept = this._confirm || this._byPointer ? null : this._focusedSpot();
     this._html = html;
     this.shadowRoot.innerHTML = html;
+    this._fitPill();
     this._placeImages();
     this._placeCamera();
     if (kept) this._restoreFocus(kept);
