@@ -10,6 +10,7 @@
 
 ### Fixes
 - Night picture with the dark theme even while the sun is up (`illustration_theme: auto`): the header is night when `sun.sun` is below the horizon or Home Assistant's theme is dark; `day` / `night` still force it.
+- No repeated battery level: where the body shows the battery level big (full card, expanded mini card), the illustrated header no longer repeats it under the name and keeps the next start (else the last completed session); the compact mini card keeps the level in its header.
 
 ## 1.4.2 - 2026-11-14
 

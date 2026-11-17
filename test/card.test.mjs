@@ -420,7 +420,15 @@ test("the illustrated header: garden, lawn strip, mower cropped to its state, st
   assert.match(html, /class="mc-ground"/);
   assert.match(html, /class="picture clickable station"[^>]*data-entity="lawn_mower\.tondeuse"/, "docked: the mower at its station");
   assert.match(html, /class="trow"><div class="name">[^<]+<\/div><span class="chip clickable ok"[^>]*>.*Docked.*<\/span><\/div>/, "the status pill right after the name");
-  assert.match(html, /class="state"><span class="batt-pct">78 %<\/span>/, "the battery level under the name, without the status again");
+  // The body shows the battery level big: the header does not repeat it, its subtitle tells the next start.
+  assert.doesNotMatch(html, /<span class="batt-pct">/, "no battery level in the full card's header");
+  assert.match(html, /<div class="sub">Next start in [^<]+<\/div>/);
+  // The compact mini card has no big level: its header keeps it under the name; expanded, it drops it.
+  const mini = newCard(makeHass(), {}, mc.MowerMiniCard);
+  assert.match(mini.shadowRoot.innerHTML, /class="state"><span class="batt-pct">78 %<\/span>/, "the battery level under the name, without the status again");
+  mini._setZoom(true);
+  assert.doesNotMatch(mini.shadowRoot.innerHTML, /<span class="batt-pct">/);
+  assert.match(mini.shadowRoot.innerHTML, /<div class="sub">Next start in [^<]+<\/div>/);
   assert.doesNotMatch(html, /class="hero">\s*<div class="picture/, "the picture moved to the header");
   const mow = newCard(makeHass(withOverrides(mowing))).shadowRoot.innerHTML;
   assert.match(mow, /class="picture clickable lawn"/, "mowing: the mower on the lawn");

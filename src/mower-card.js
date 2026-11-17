@@ -3483,7 +3483,8 @@ class MowerBase extends HTMLElement {
   _banner(dev, status, sub) {
     const c = this._config;
     const { v } = this._batteryLevel(this._battery(dev));
-    const pct = v === null || v === undefined ? "" : `<span class="batt-pct">${Math.round(v)} %</span>`;
+    // The battery level under the name, unless the body shows it big (full card, expanded mini card).
+    const pct = v === null || v === undefined || this._heroInBody() ? "" : `<span class="batt-pct">${Math.round(v)} %</span>`;
     return `
       <div class="banner${isNight(this._hass, c) ? " night" : ""}${this._zoomButton() ? " zoomable" : ""}">
         ${gardenSvg(this._uid)}<div class="mc-ground" aria-hidden="true"></div>
@@ -3513,6 +3514,11 @@ class MowerBase extends HTMLElement {
         ${this._statusChip(dev, status)}
         ${this._zoomButton()}
       </div>`;
+  }
+
+  // Whether the body shows the battery level big: always on the full card, only expanded on the mini card.
+  _heroInBody() {
+    return true;
   }
 
   // Detail button at the far right of the header (mini card only).
@@ -4074,6 +4080,10 @@ class MowerMiniCard extends MowerCard {
   _toggleZoom(ev) {
     this._setZoom(!this._zoomed);
     if (ev.detail === 0) this.shadowRoot.querySelector(".zoom")?.focus({ preventScroll: true });
+  }
+
+  _heroInBody() {
+    return !!this._zoomed;
   }
 
   _render() {
