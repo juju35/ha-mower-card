@@ -412,3 +412,57 @@ test("entities: the user's entities under the names the cards read replace the o
   assert.equal(mc.findDevice(card._hass, card._config).dev, dev);
   assert.match(card.shadowRoot.innerHTML, /data-entity="sensor\.my_blade"/);
 });
+
+test("the illustrated header: garden, lawn strip, mower cropped to its state, status and battery on the sky", () => {
+  const html = newCard(makeHass()).shadowRoot.innerHTML;
+  assert.match(html, /<div class="banner( night)?">/);
+  assert.match(html, /class="mc-scene"/);
+  assert.match(html, /class="mc-ground"/);
+  assert.match(html, /class="picture clickable station"[^>]*data-entity="lawn_mower\.tondeuse"/, "docked: the mower at its station");
+  assert.match(html, /class="trow"><div class="name">[^<]+<\/div><span class="chip clickable ok"[^>]*>.*Docked.*<\/span><\/div>/, "the status pill right after the name");
+  // The body shows the battery level big: the header does not repeat it, its subtitle tells the next start.
+  assert.doesNotMatch(html, /<span class="batt-pct">/, "no battery level in the full card's header");
+  assert.match(html, /<div class="sub">Next start in [^<]+<\/div>/);
+  // The compact mini card has no big level: its header keeps it under the name; expanded, it drops it.
+  const mini = newCard(makeHass(), {}, mc.MowerMiniCard);
+  assert.match(mini.shadowRoot.innerHTML, /class="state"><span class="batt-pct">78 %<\/span>/, "the battery level under the name, without the status again");
+  mini._setZoom(true);
+  assert.doesNotMatch(mini.shadowRoot.innerHTML, /<span class="batt-pct">/);
+  assert.match(mini.shadowRoot.innerHTML, /<div class="sub">Next start in [^<]+<\/div>/);
+  assert.doesNotMatch(html, /class="hero">\s*<div class="picture/, "the picture moved to the header");
+  const mow = newCard(makeHass(withOverrides(mowing))).shadowRoot.innerHTML;
+  assert.match(mow, /class="picture clickable lawn"/, "mowing: the mower on the lawn");
+  assert.match(newCard(makeHass(), { device: "dreame", image: "auto" }).shadowRoot.innerHTML, /class="picture clickable (station|lawnLidar)"/);
+  assert.match(mc.bannerMowerSvg("husqvarna", "mowing"), /viewBox="0 14 160 84"/);
+  assert.match(mc.bannerMowerSvg("dreame", null), /viewBox="0 6 160 92"/);
+  assert.match(mc.bannerMowerSvg("landroid", "charging"), /viewBox="0 58 160 96"/);
+  // illustration: false keeps the classic header, with the picture beside the battery.
+  const classic = newCard(makeHass(), { illustration: false }).shadowRoot.innerHTML;
+  assert.doesNotMatch(classic, /class="banner/);
+  assert.match(classic, /<div class="header">/);
+  assert.match(classic, /class="hero">\s*<div class="picture clickable"/);
+});
+
+test("the header icon's colour follows the status", () => {
+  assert.match(newCard(makeHass()).shadowRoot.innerHTML, /type-icon ok"/, "docked and charging: green");
+  assert.match(newCard(makeHass(withOverrides(mowing))).shadowRoot.innerHTML, /type-icon active"/);
+  assert.match(newCard(makeHass(withOverrides(errorState))).shadowRoot.innerHTML, /type-icon crit"/);
+  assert.match(newCard(makeHass(withOverrides(rainDelay)), { device: "Landroid Vision" }).shadowRoot.innerHTML, /type-icon warn"/);
+  assert.match(newCard(makeHass(), { illustration: false }).shadowRoot.innerHTML, /type-icon ok"/, "classic header too");
+});
+
+test("night follows illustration_theme, else the sun below the horizon or the dark theme; each card has its own ids", () => {
+  assert.equal(mc.isNight({}, { illustration_theme: "night" }), true);
+  assert.equal(mc.isNight({ states: { "sun.sun": { state: "below_horizon" } } }, { illustration_theme: "day" }), false);
+  assert.equal(mc.isNight({ states: { "sun.sun": { state: "below_horizon" } } }, {}), true);
+  assert.equal(mc.isNight({ states: { "sun.sun": { state: "above_horizon" } }, themes: { darkMode: true } }, {}), true);
+  assert.equal(mc.isNight({ states: { "sun.sun": { state: "above_horizon" } }, themes: { darkMode: false } }, {}), false);
+  assert.equal(mc.isNight({ states: { "sun.sun": { state: "above_horizon" } }, themes: { darkMode: true } }, { illustration_theme: "day" }), false);
+  assert.equal(mc.isNight({ states: { "sun.sun": { state: "above_horizon" } }, themes: { darkMode: false } }, { illustration_theme: "night" }), true);
+  assert.equal(mc.isNight({ states: { "sun.sun": { state: "unavailable" } }, themes: { darkMode: false } }, {}), false);
+  assert.equal(mc.isNight({ states: {}, themes: { darkMode: true } }, {}), true);
+  assert.match(newCard(makeHass(), { illustration_theme: "night" }).shadowRoot.innerHTML, /<div class="banner night">/);
+  const a = newCard(makeHass()).shadowRoot.innerHTML.match(/id="mc-mask-(\d+)"/)[1];
+  const b = newCard(makeHass()).shadowRoot.innerHTML.match(/id="mc-mask-(\d+)"/)[1];
+  assert.notEqual(a, b);
+});

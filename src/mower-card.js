@@ -149,6 +149,63 @@ const mowerSvg = (brand, activity = null) => {
 };
 const svgUri = (svg) => svg && `data:image/svg+xml,${encodeURIComponent(svg)}`;
 
+// The same picture cropped to the mower (and its station), for the illustrated header: the frame starts just above
+// the red stop button (the LiDAR turret of a Dreame, the station's post) and ends just under the lawn tuft. The
+// scale is the same on the lawn and at the station (the header draws them 0.74 / 0.83 px per unit, see BANNER_STYLE).
+const MOWER_CROPS = { lawn: [14, 84], lawnLidar: [6, 92], station: [58, 96] };
+const bannerCrop = (brand, activity) => {
+  if (["docked", "charging", "returning"].includes(activity)) return "station";
+  return MOWER_COLORS[brand]?.lidar ? "lawnLidar" : "lawn";
+};
+const bannerMowerSvg = (brand, activity) => {
+  const [y, h] = MOWER_CROPS[bannerCrop(brand, activity)];
+  return mowerSvg(brand, activity).replace(/viewBox="[^"]*"/, `viewBox="0 ${y} 160 ${h}"`);
+};
+
+// ---------------------------------------------------------------------------
+// Illustrated header
+// ---------------------------------------------------------------------------
+// A garden at the right of the header (200 × 80, drawn 1.15× from its bottom right corner): sun or moon, clouds,
+// a hill with a house and a tree, under a sky gradient; the mower's picture stands on a 10 px lawn strip that runs
+// under the whole header. The left of the header is open sky for the icon and the text. `uid` keeps the ids of each
+// card apart on a page with several cards.
+const MC_STARS = [
+  [10, 8],
+  [40, 20],
+  [100, 6],
+  [130, 26],
+  [170, 10],
+  [190, 30],
+];
+const mcCloud = (x, y, s) =>
+  `<path class="mc-cloud" transform="translate(${x} ${y}) scale(${s})" d="M-14,4 C-17,4 -18,0 -14.5,-1 C-14,-5 -8,-6 -6,-3 C-4,-8 4,-8 5,-2 C9,-3 12,0 10,4 Z"/>`;
+const gardenSvg = (uid) => `<svg class="mc-scene" viewBox="0 0 200 80" preserveAspectRatio="xMaxYMax slice" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="mc-fade-${uid}" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="28" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff"/></linearGradient>
+      <mask id="mc-mask-${uid}" maskUnits="userSpaceOnUse" x="0" y="0" width="200" height="80"><rect width="200" height="80" fill="url(#mc-fade-${uid})"/></mask>
+    </defs>
+    <g mask="url(#mc-mask-${uid})"><g transform="translate(200 80) scale(1.15) translate(-200 -80)">
+      <g class="mc-day"><circle class="mc-sun halo" cx="70" cy="16" r="9"/><circle class="mc-sun" cx="70" cy="16" r="6"/></g>
+      <g class="mc-night">${MC_STARS.map(([x, y], i) => `<circle class="mc-star${i % 2 ? " tw" : ""}" cx="${x}" cy="${y}" r=".6"/>`).join("")}<path class="mc-moon" d="M70 10.5a5.5 5.5 0 1 0 4.6 8.5 4.5 4.5 0 1 1-4.6-8.5Z"/></g>
+      ${mcCloud(40, 14, 1)}${mcCloud(150, 22, 0.7)}
+      <path class="mc-hill far" d="M0,80 C30,70 60,64 100,66 C140,68 170,60 200,62 L200,80Z"/>
+      <g transform="translate(20 50)"><rect class="mc-wall" width="34" height="22"/><path class="mc-roof" d="M-3 1 L17 -12 L37 1Z"/><rect class="mc-win" x="5" y="7" width="7" height="6"/><rect class="mc-door" x="21" y="9" width="6" height="13"/></g>
+      <path class="mc-hill" d="M0,80 C40,74 90,75 200,72 L200,80Z"/>
+      <rect class="mc-trunk" x="71" y="62" width="2" height="12"/><circle class="mc-tree" cx="72" cy="56" r="9"/>
+    </g></g>
+  </svg>`;
+
+// Night picture: forced by illustration_theme, else the sun below the horizon OR Home Assistant's dark mode (the dark
+// theme wins even while the sun is up; with no usable sun.sun the dark mode alone decides).
+const isNight = (hass, config) => {
+  const theme = config?.illustration_theme;
+  if (theme === "night") return true;
+  if (theme === "day") return false;
+  const sun = hass?.states?.["sun.sun"];
+  if (sun && !["unknown", "unavailable", ""].includes(String(sun.state))) return sun.state === "below_horizon" || !!hass?.themes?.darkMode;
+  return !!hass?.themes?.darkMode;
+};
+
 // Status (and charging / rain binary sensors) → activity of the picture.
 const activityOf = (state, charging, raining) => {
   if (["mowing", "edgecut", "zoning", "starting", "searching_zone", "leaving"].includes(state)) return "mowing";
@@ -190,7 +247,11 @@ const PLATFORMS = {
 const brandOf = (dev) => PLATFORMS[dev.platform] || "generic";
 const brandFor = (dev) => BRANDS[brandOf(dev)];
 // Accent of the device's brand for the current theme, overriding the default green of the shared styles.
-const accentStyle = (dev, hass) => `:host { --mc-accent: ${brandFor(dev).accent[hass?.themes?.darkMode ? 1 : 0]}; }`;
+// The day / night shades are kept apart for the illustrated header, which can be night with a light theme (sunset).
+const accentStyle = (dev, hass) => {
+  const a = brandFor(dev).accent;
+  return `:host { --mc-accent: ${a[hass?.themes?.darkMode ? 1 : 0]}; --mc-accent-day: ${a[0]}; --mc-accent-night: ${a[1]}; }`;
+};
 
 // Entities are keyed by their translation_key, mapped per integration to the names the cards read (the Husqvarna
 // Automower ones where they match). Integrations without translation keys (Bosch Indego, Gardena) are keyed by the
@@ -379,6 +440,11 @@ const STRINGS = {
     image: "Device picture",
     image_auto: "Automatic (drawn, brand colors)",
     image_none: "None",
+    illustration: "Animated illustration",
+    illustration_theme: "Illustration theme",
+    theme_auto: "Automatic (sun or dark theme)",
+    theme_day: "Day",
+    theme_night: "Night",
     show_controls: "Show control buttons",
     show_title: "Show title",
     show_subtitle: "Show subtitle",
@@ -467,6 +533,11 @@ const STRINGS = {
     image: "Image de l'appareil",
     image_auto: "Automatique (dessin aux couleurs de la marque)",
     image_none: "Aucune",
+    illustration: "Illustration animée",
+    illustration_theme: "Thème de l’illustration",
+    theme_auto: "Automatique (soleil ou thème sombre)",
+    theme_day: "Jour",
+    theme_night: "Nuit",
     show_controls: "Afficher les boutons de commande",
     show_title: "Afficher le titre",
     show_subtitle: "Afficher le sous-titre",
@@ -554,6 +625,11 @@ const STRINGS = {
     image: "Gerätebild",
     image_auto: "Automatisch (Zeichnung in Markenfarben)",
     image_none: "Keins",
+    illustration: "Animierte Illustration",
+    illustration_theme: "Thema der Illustration",
+    theme_auto: "Automatisch (Sonne oder dunkles Design)",
+    theme_day: "Tag",
+    theme_night: "Nacht",
     show_controls: "Bedienknöpfe anzeigen",
     show_title: "Titel anzeigen",
     show_subtitle: "Untertitel anzeigen",
@@ -641,6 +717,11 @@ const STRINGS = {
     image: "Imagen del dispositivo",
     image_auto: "Automática (dibujo con los colores de la marca)",
     image_none: "Ninguna",
+    illustration: "Ilustración animada",
+    illustration_theme: "Tema de la ilustración",
+    theme_auto: "Automático (sol o tema oscuro)",
+    theme_day: "Día",
+    theme_night: "Noche",
     show_controls: "Mostrar botones de control",
     show_title: "Mostrar el título",
     show_subtitle: "Mostrar el subtítulo",
@@ -728,6 +809,11 @@ const STRINGS = {
     image: "Слика уређаја",
     image_auto: "Аутоматски (цртеж у бојама бренда)",
     image_none: "Нема",
+    illustration: "Анимирана илустрација",
+    illustration_theme: "Тема илустрације",
+    theme_auto: "Аутоматски (сунце или тамна тема)",
+    theme_day: "Дан",
+    theme_night: "Ноћ",
     show_controls: "Прикажи контролне дугмиће",
     show_title: "Прикажи наслов",
     show_subtitle: "Прикажи поднаслов",
@@ -815,6 +901,11 @@ const STRINGS = {
     image: "Slika uređaja",
     image_auto: "Automatski (crtež u bojama brenda)",
     image_none: "Nema",
+    illustration: "Animirana ilustracija",
+    illustration_theme: "Tema ilustracije",
+    theme_auto: "Automatski (sunce ili tamna tema)",
+    theme_day: "Dan",
+    theme_night: "Noć",
     show_controls: "Prikaži kontrolne dugmiće",
     show_title: "Prikaži naslov",
     show_subtitle: "Prikaži podnaslov",
@@ -902,6 +993,11 @@ const STRINGS = {
     image: "Immagine del dispositivo",
     image_auto: "Automatica (disegno nei colori del marchio)",
     image_none: "Nessuna",
+    illustration: "Illustrazione animata",
+    illustration_theme: "Tema dell’illustrazione",
+    theme_auto: "Automatico (sole o tema scuro)",
+    theme_day: "Giorno",
+    theme_night: "Notte",
     show_controls: "Mostra i pulsanti di controllo",
     show_title: "Mostra il titolo",
     show_subtitle: "Mostra il sottotitolo",
@@ -989,6 +1085,11 @@ const STRINGS = {
     image: "Afbeelding van het apparaat",
     image_auto: "Automatisch (tekening in merkkleuren)",
     image_none: "Geen",
+    illustration: "Geanimeerde illustratie",
+    illustration_theme: "Thema van de illustratie",
+    theme_auto: "Automatisch (zon of donker thema)",
+    theme_day: "Dag",
+    theme_night: "Nacht",
     show_controls: "Bedieningsknoppen tonen",
     show_title: "Titel tonen",
     show_subtitle: "Ondertitel tonen",
@@ -1076,6 +1177,11 @@ const STRINGS = {
     image: "Imagem do dispositivo",
     image_auto: "Automática (desenho nas cores da marca)",
     image_none: "Nenhuma",
+    illustration: "Ilustração animada",
+    illustration_theme: "Tema da ilustração",
+    theme_auto: "Automático (sol ou tema escuro)",
+    theme_day: "Dia",
+    theme_night: "Noite",
     show_controls: "Mostrar botões de controlo",
     show_title: "Mostrar o título",
     show_subtitle: "Mostrar o subtítulo",
@@ -1163,6 +1269,11 @@ const STRINGS = {
     image: "Obraz urządzenia",
     image_auto: "Automatyczny (rysunek w kolorach marki)",
     image_none: "Brak",
+    illustration: "Animowana ilustracja",
+    illustration_theme: "Motyw ilustracji",
+    theme_auto: "Automatycznie (słońce lub ciemny motyw)",
+    theme_day: "Dzień",
+    theme_night: "Noc",
     show_controls: "Pokaż przyciski sterowania",
     show_title: "Pokaż tytuł",
     show_subtitle: "Pokaż podtytuł",
@@ -1250,6 +1361,11 @@ const STRINGS = {
     image: "Imaginea dispozitivului",
     image_auto: "Automată (desen în culorile mărcii)",
     image_none: "Niciuna",
+    illustration: "Ilustrație animată",
+    illustration_theme: "Tema ilustrației",
+    theme_auto: "Automat (soare sau temă întunecată)",
+    theme_day: "Zi",
+    theme_night: "Noapte",
     show_controls: "Afișează butoanele de control",
     show_title: "Afișează titlul",
     show_subtitle: "Afișează subtitlul",
@@ -1337,6 +1453,11 @@ const STRINGS = {
     image: "Enhedsbillede",
     image_auto: "Automatisk (tegning i mærkets farver)",
     image_none: "Intet",
+    illustration: "Animeret illustration",
+    illustration_theme: "Illustrationens tema",
+    theme_auto: "Automatisk (sol eller mørkt tema)",
+    theme_day: "Dag",
+    theme_night: "Nat",
     show_controls: "Vis betjeningsknapper",
     show_title: "Vis titel",
     show_subtitle: "Vis undertitel",
@@ -1424,6 +1545,11 @@ const STRINGS = {
     image: "Enhetsbild",
     image_auto: "Automatisk (ritning i märkets färger)",
     image_none: "Ingen",
+    illustration: "Animerad illustration",
+    illustration_theme: "Illustrationens tema",
+    theme_auto: "Automatiskt (sol eller mörkt tema)",
+    theme_day: "Dag",
+    theme_night: "Natt",
     show_controls: "Visa kontrollknappar",
     show_title: "Visa rubrik",
     show_subtitle: "Visa underrubrik",
@@ -1511,6 +1637,11 @@ const STRINGS = {
     image: "Изображение на устройството",
     image_auto: "Автоматично (рисунка в цветовете на марката)",
     image_none: "Без",
+    illustration: "Анимирана илюстрация",
+    illustration_theme: "Тема на илюстрацията",
+    theme_auto: "Автоматично (слънце или тъмна тема)",
+    theme_day: "Ден",
+    theme_night: "Нощ",
     show_controls: "Показване на бутоните за управление",
     show_title: "Показване на заглавието",
     show_subtitle: "Показване на подзаглавието",
@@ -1598,6 +1729,11 @@ const STRINGS = {
     image: "Изображение устройства",
     image_auto: "Автоматически (рисунок в цветах бренда)",
     image_none: "Нет",
+    illustration: "Анимированная иллюстрация",
+    illustration_theme: "Тема иллюстрации",
+    theme_auto: "Автоматически (солнце или тёмная тема)",
+    theme_day: "День",
+    theme_night: "Ночь",
     show_controls: "Показывать кнопки управления",
     show_title: "Показывать заголовок",
     show_subtitle: "Показывать подзаголовок",
@@ -1685,6 +1821,11 @@ const STRINGS = {
     image: "Зображення пристрою",
     image_auto: "Автоматично (малюнок у кольорах бренду)",
     image_none: "Немає",
+    illustration: "Анімована ілюстрація",
+    illustration_theme: "Тема ілюстрації",
+    theme_auto: "Автоматично (сонце або темна тема)",
+    theme_day: "День",
+    theme_night: "Ніч",
     show_controls: "Показувати кнопки керування",
     show_title: "Показувати заголовок",
     show_subtitle: "Показувати підзаголовок",
@@ -1772,6 +1913,11 @@ const STRINGS = {
     image: "Eszköz képe",
     image_auto: "Automatikus (rajz a márka színeiben)",
     image_none: "Nincs",
+    illustration: "Animált illusztráció",
+    illustration_theme: "Az illusztráció témája",
+    theme_auto: "Automatikus (nap vagy sötét téma)",
+    theme_day: "Nappal",
+    theme_night: "Éjszaka",
     show_controls: "Vezérlőgombok megjelenítése",
     show_title: "Cím megjelenítése",
     show_subtitle: "Alcím megjelenítése",
@@ -1859,6 +2005,11 @@ const STRINGS = {
     image: "Obrázok zariadenia",
     image_auto: "Automaticky (kresba vo farbách značky)",
     image_none: "Žiadny",
+    illustration: "Animovaná ilustrácia",
+    illustration_theme: "Téma ilustrácie",
+    theme_auto: "Automaticky (slnko alebo tmavá téma)",
+    theme_day: "Deň",
+    theme_night: "Noc",
     show_controls: "Zobraziť ovládacie tlačidlá",
     show_title: "Zobraziť názov",
     show_subtitle: "Zobraziť podnázov",
@@ -1946,6 +2097,11 @@ const STRINGS = {
     image: "Obrázek zařízení",
     image_auto: "Automaticky (kresba v barvách značky)",
     image_none: "Žádný",
+    illustration: "Animovaná ilustrace",
+    illustration_theme: "Motiv ilustrace",
+    theme_auto: "Automaticky (slunce nebo tmavý motiv)",
+    theme_day: "Den",
+    theme_night: "Noc",
     show_controls: "Zobrazit ovládací tlačítka",
     show_title: "Zobrazit název",
     show_subtitle: "Zobrazit podnázev",
@@ -2033,6 +2189,11 @@ const STRINGS = {
     image: "Slika naprave",
     image_auto: "Samodejno (risba v barvah znamke)",
     image_none: "Brez",
+    illustration: "Animirana ilustracija",
+    illustration_theme: "Tema ilustracije",
+    theme_auto: "Samodejno (sonce ali temna tema)",
+    theme_day: "Dan",
+    theme_night: "Noč",
     show_controls: "Prikaži gumbe za upravljanje",
     show_title: "Prikaži naslov",
     show_subtitle: "Prikaži podnaslov",
@@ -2120,6 +2281,11 @@ const STRINGS = {
     image: "Ierīces attēls",
     image_auto: "Automātiski (zīmējums zīmola krāsās)",
     image_none: "Nav",
+    illustration: "Animēta ilustrācija",
+    illustration_theme: "Ilustrācijas motīvs",
+    theme_auto: "Automātiski (saule vai tumšā tēma)",
+    theme_day: "Diena",
+    theme_night: "Nakts",
     show_controls: "Rādīt vadības pogas",
     show_title: "Rādīt virsrakstu",
     show_subtitle: "Rādīt apakšvirsrakstu",
@@ -2207,6 +2373,11 @@ const STRINGS = {
     image: "Εικόνα συσκευής",
     image_auto: "Αυτόματη (σχέδιο στα χρώματα της μάρκας)",
     image_none: "Καμία",
+    illustration: "Κινούμενη εικονογράφηση",
+    illustration_theme: "Θέμα εικονογράφησης",
+    theme_auto: "Αυτόματα (ήλιος ή σκοτεινό θέμα)",
+    theme_day: "Ημέρα",
+    theme_night: "Νύχτα",
     show_controls: "Εμφάνιση κουμπιών ελέγχου",
     show_title: "Εμφάνιση τίτλου",
     show_subtitle: "Εμφάνιση υπότιτλου",
@@ -2502,7 +2673,7 @@ const BASE_STYLE = `
              one) so that it reads at 4.5:1 at least; dots, bars and icons keep the plain color. */
           --mc-accent-text: color-mix(in srgb, var(--mc-accent) 50%, var(--primary-text-color)); }
   /* Container queries below follow the width the card is given (Sections view columns, mini card). */
-  ha-card { overflow: hidden; container-type: inline-size; }
+  ha-card { overflow: hidden; container: mc-card / inline-size; }
   /* A size container has no width of its own content: in a parent that sizes to its content the card would fall to
      its borders. This empty, zero-height grid gives the card a natural (max-content) width without any minimum. */
   :host { display: block; min-width: 0; --mc-natural-width: 360px; }
@@ -2524,15 +2695,20 @@ const BASE_STYLE = `
   .logo { width: 40px; height: 40px; object-fit: contain; flex: none; }
   a.logo-link { display: flex; flex: none; text-decoration: none; }
   .type-icon { position: relative; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex: none;
-               background: color-mix(in srgb, var(--mc-accent) 16%, transparent); }
-  .type-icon .icon.type { width: 24px; height: 24px; fill: var(--mc-accent); }
+               --ic: var(--mc-idle); background: color-mix(in srgb, var(--ic) 16%, transparent); }
+  .type-icon .icon.type { width: 24px; height: 24px; fill: var(--ic); }
+  /* The icon's colour tells the status (classic and illustrated header): working (mowing, returning) in the state
+     colour (Home Assistant's lawn mower colour, else the brand accent), charging green, waiting (paused, rain) amber,
+     error red, resting (docked, idle) grey. */
+  .type-icon.active { --ic: var(--state-lawn_mower-mowing-color, var(--mc-accent)); }
+  .type-icon.ok { --ic: var(--mc-ok); } .type-icon.warn { --ic: var(--mc-warn); } .type-icon.crit { --ic: var(--mc-crit); }
   .type-icon .logo { position: absolute; right: -4px; bottom: -4px; width: 18px; height: 18px; border-radius: 5px;
                      background: var(--card-background-color, #fff);
                      box-shadow: 0 0 0 1px var(--divider-color, rgba(0,0,0,.12)), 0 0 0 3px var(--card-background-color, #fff); }
   /* The title takes the room the chip leaves (flex-basis 0: a long name does not push the chip into its ellipsis)
      and keeps about four characters and its ellipsis; the chip shrinks only when even that does not fit. */
   .titles { flex: 1 1 0; min-width: 5ch; font-size: 16px; }
-  :host([hide-title]) .titles > .name, :host([hide-subtitle]) .titles > .sub { display: none; }
+  :host([hide-title]) .titles .name, :host([hide-subtitle]) .titles > .sub { display: none; }
   .name { font-size: 16px; font-weight: 500; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .sub { font-size: 12px; color: var(--secondary-text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .warning { padding: 16px; color: color-mix(in srgb, var(--mc-warn) 50%, var(--primary-text-color)); }
@@ -2559,8 +2735,23 @@ const BASE_STYLE = `
   .zoom .icon { width: 16px; height: 16px; }
   .zoom:hover { background: color-mix(in srgb, var(--mc-idle) 16%, transparent); color: var(--primary-text-color); }
   .zoom:focus-visible { outline: 2px solid var(--primary-color, var(--mc-accent)); outline-offset: 1px; }
+  /* Classic header: the detail button in the card's top right corner, out of the title row. */
+  .header:has(> .zoom) { position: relative; padding-right: 44px; }
+  .header > .zoom { position: absolute; top: 12px; right: 12px; margin: 0; box-shadow: inset 0 0 0 1px var(--divider-color, rgba(127,127,127,.3)); }
+  /* Title row (both headers): the name, then the status pill right after it, only when the whole name and the whole
+     label fit there (measured by the card, see _fitPill); else the pill takes a line of its own under the subtitle. */
+  .trow { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .trow .name { flex: 0 1 auto; min-width: 5ch; }
+  .trow .chip { flex: none; max-width: none; }
+  .titles.below { display: flex; flex-direction: column; }
+  .titles.below .trow { display: contents; }
+  .titles.below .name { order: 0; } .titles.below .state { order: 1; } .titles.below .sub { order: 2; }
+  .titles.below .chip { order: 3; align-self: flex-start; max-width: 100%; margin-top: 2px; }
+  /* No room for the whole label, even on its own line: the dot only (its text stays in title and aria-label). */
+  .titles.dot-only .chip { padding: 0; width: 16px; height: 16px; justify-content: center; }
+  .titles.dot-only .chip .chip-text { display: none; }
   /* Narrow card: the status chip keeps only its colored dot (its text stays in title and aria-label). */
-  @container (max-width: 230px) {
+  @container mc-card (max-width: 200px) {
     .chip { padding: 4px; flex: none; }
     .chip-text { display: none; }
   }
@@ -2568,6 +2759,91 @@ const BASE_STYLE = `
   @container (max-width: 200px) {
     .header { gap: 6px; }
   }
+`;
+
+// The illustrated header: 90 px, the garden and the mower at its right, a 10 px lawn strip edge to edge at its
+// bottom, the round icon and the text on the sky at its left. The mower's picture (cropped, MOWER_CROPS) is drawn
+// at 0.74 px per unit on the lawn and 0.83 at the station, so that the mower has the same size in both.
+const BANNER_STYLE = `
+  .banner { position: relative; overflow: hidden; height: 90px; --g: 10px; --scene-w: min(200px, 62%);
+            color: #0d2a45; background: linear-gradient(90deg, #f1f8ff 0%, #e2f1fd 34%, #b9def8 70%, #9fd0f3 100%); }
+  .banner.night { color: #fff; background: linear-gradient(90deg, #1b2f52 0%, #15284a 36%, #0f1f3d 72%, #0a1830 100%); }
+  .mc-scene { position: absolute; right: 0; bottom: var(--g); height: calc(100% - var(--g)); width: var(--scene-w); }
+  .mc-ground { position: absolute; left: 0; right: 0; bottom: 0; height: var(--g);
+               background: repeating-linear-gradient(90deg, #5aa83d 0 22px, #6cbb4c 22px 44px); }
+  .night .mc-ground { background: repeating-linear-gradient(90deg, #1f4a2a 0 22px, #245433 22px 44px); }
+  .mc-night, .night .mc-day { display: none; }
+  .night .mc-night { display: inline; }
+  .mc-sun { fill: #ffd65a; } .mc-sun.halo { opacity: .28; }
+  .mc-moon { fill: #f3eed2; }
+  .mc-star { fill: #fff; opacity: .8; }
+  .mc-star.tw { animation: mc-twinkle 3.2s ease-in-out infinite alternate; }
+  .mc-cloud { fill: #fff; opacity: .92; animation: mc-drift 4s ease-in-out infinite alternate; }
+  .night .mc-cloud { opacity: .1; }
+  .mc-hill.far { fill: #a7d39f; } .mc-hill { fill: #86c27f; }
+  .night .mc-hill.far { fill: #1d3a4a; } .night .mc-hill { fill: #17303d; }
+  .mc-wall { fill: #f3e6d3; } .mc-roof { fill: #c0603a; } .mc-win { fill: #86b9de; } .mc-door { fill: #8a5a3a; }
+  .night .mc-wall { fill: #2a3646; } .night .mc-roof { fill: #3a2a2a; } .night .mc-win { fill: #ffcf6e; } .night .mc-door { fill: #1c2530; }
+  .mc-trunk { fill: #6b4a2a; } .mc-tree { fill: #5aa83d; } .night .mc-tree { fill: #1a3a2a; }
+  @keyframes mc-drift { to { transform: translateX(4px); } }
+  @keyframes mc-twinkle { from { opacity: .3; } to { opacity: .9; } }
+  /* The mower (its own animations run in its picture), standing on the strip: right-aligned, its lawn tuft over the
+     strip's top. */
+  .banner .picture { position: absolute; right: 2px; bottom: calc(var(--g) - 4px); width: auto; height: auto; max-width: 48%;
+                     display: block; }
+  .banner .picture img { display: block; height: 62px; width: auto; max-width: 100%; object-fit: contain; object-position: right bottom;
+                         filter: drop-shadow(0 2px 3px rgba(0,0,0,.18)); }
+  .banner .picture.lawnLidar img { height: 68px; }
+  .banner .picture.station img { height: 80px; }
+  .banner .picture.custom img { height: 72px; }
+  /* Icon and text on the sky, up to where the garden starts. */
+  .banner .htext { position: absolute; left: 14px; top: 0; bottom: var(--g); right: calc(var(--scene-w) + 4px);
+                   display: flex; align-items: center; gap: 10px; min-width: 0; z-index: 1; }
+  .banner .type-icon { background: rgba(255,255,255,.62); box-shadow: inset 0 0 0 1px rgba(47,128,237,.18); }
+  .banner.night .type-icon { background: rgba(255,255,255,.12); box-shadow: inset 0 0 0 1px rgba(255,255,255,.14); }
+  .banner .type-icon.idle { --ic: #7b858f; }
+  .banner.night .type-icon.idle { --ic: #a3adb8; }
+  .banner .type-icon.active { --ic: var(--state-lawn_mower-mowing-color, var(--mc-accent-day)); }
+  .banner.night .type-icon.active { --ic: var(--state-lawn_mower-mowing-color, var(--mc-accent-night)); }
+  .banner .type-icon .logo { box-shadow: 0 0 0 1px rgba(13,42,69,.16), 0 1px 3px rgba(13,42,69,.18); background: #fff; }
+  .banner .titles { flex: 1 1 auto; display: flex; flex-direction: column; gap: 1px; container: mc-titles / inline-size; }
+  .banner .name { font-size: 16px; }
+  .banner .chip { flex: none; max-width: none; line-height: 16px;
+                  background: color-mix(in srgb, var(--c) 18%, rgba(255,255,255,.78)); color: color-mix(in srgb, var(--c) 45%, #0d2a45); }
+  .banner.night .chip { background: color-mix(in srgb, var(--c) 30%, rgba(8,18,38,.55)); color: color-mix(in srgb, var(--c) 35%, #ffffff); }
+  .banner .chip .dot { width: 7px; height: 7px; }
+  .banner .state { display: flex; align-items: baseline; min-width: 0; font-size: 13px; color: #3b5b78; white-space: nowrap; }
+  .banner.night .state { color: rgba(255,255,255,.78); }
+  .banner .state .batt-pct { flex: none; white-space: nowrap; }
+  .banner .sub { font-size: 12px; color: #3b5b78; }
+  .banner.night .sub { color: rgba(255,255,255,.7); }
+  /* Detail button (mini card): a small frosted round button in the banner's top right corner. */
+  .banner .zoom { position: absolute; top: 5px; right: 5px; margin: 0; z-index: 2; width: 24px; height: 24px; color: #33506b;
+                  background: rgba(255,255,255,.55); box-shadow: inset 0 0 0 1px rgba(255,255,255,.7); backdrop-filter: blur(4px); }
+  .banner.night .zoom { color: #fff; background: rgba(255,255,255,.12); box-shadow: inset 0 0 0 1px rgba(255,255,255,.2); }
+  .banner .zoom:hover { background: rgba(255,255,255,.75); color: #33506b; }
+  .banner.night .zoom:hover { background: rgba(255,255,255,.22); color: #fff; }
+  /* Mini card: the mower steps aside for the detail button at the top right. */
+  .banner.zoomable .picture { right: 28px; max-width: calc(var(--scene-w) - 28px); }
+  /* Narrow card: the garden narrows, the mower shrinks to the room left beside the text; on the narrowest (a mini
+     card at 6 columns on a phone) only the sky and the lawn strip stay, the text takes the width. */
+  @container (max-width: 300px) {
+    .banner { --scene-w: 46%; }
+    .banner .htext { left: 10px; gap: 8px; }
+  }
+  @container mc-card (max-width: 300px) {
+    .banner .state .batt-pct { display: none; }
+  }
+  @container mc-card (max-width: 200px) {
+    .banner .chip { padding: 0; width: 16px; height: 16px; justify-content: center; }
+    .banner .chip .chip-text { display: none; }
+  }
+  @container (max-width: 230px) {
+    .banner .mc-scene, .banner .picture { display: none; }
+    .banner .htext { right: 8px; }
+    .banner.zoomable .htext { right: 34px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .mc-cloud, .mc-star.tw { animation: none !important; } }
 `;
 
 // In-card confirmation popup, as in the other ha-* cards: a backdrop over the card with a small dialog at the top of
@@ -2586,6 +2862,13 @@ const DIALOG_STYLE = `
 const DIALOG_TAGS = new Set(["HA-MORE-INFO-DIALOG", "HA-DIALOG", "DIALOG"]);
 
 // True for a click outside `card` that is not in a dialog opened from it (more-info, say).
+// The whole width of an element's text, in fractional pixels, even when it is cut with an ellipsis.
+const textWidth = (el) => {
+  const range = document.createRange();
+  range.selectNodeContents(el);
+  return Math.max(el.scrollWidth, range.getBoundingClientRect().width);
+};
+
 const isOutside = (card, ev) => {
   const path = ev.composedPath();
   return !path.includes(card) && !path.some((n) => DIALOG_TAGS.has(n.tagName));
@@ -2660,10 +2943,13 @@ const watchOutside = (card, handler) => {
   };
 };
 
+let _mcUid = 0;
+
 class MowerBase extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
+    this._uid = ++_mcUid;
     this._html = "";
     this.shadowRoot.addEventListener("click", (ev) => this._onClick(ev));
     // Enter / Space on an element with the button role (tile, section title, chip…) acts as a click, as on a <button>
@@ -2726,7 +3012,7 @@ class MowerBase extends HTMLElement {
     const { dev } = findDevice(h, this._config);
     if (!dev) return null;
     const ids = [dev.mower, ...Object.values(dev.entities), ...Object.values(dev.extra).flat(), this._config.map_entity, this._config.camera_entity];
-    return [h.entities, h.devices, h.language, h.locale, h.localize, h.formatEntityState, h.themes?.darkMode, this._subtitle(dev), ...ids.map((id) => h.states[id])];
+    return [h.entities, h.devices, h.language, h.locale, h.localize, h.formatEntityState, h.themes?.darkMode, h.states["sun.sun"]?.state, this._subtitle(dev), ...ids.map((id) => h.states[id])];
   }
 
   get hass() {
@@ -2744,6 +3030,18 @@ class MowerBase extends HTMLElement {
       else this._update();
     };
     (this._onOutsideWatch ??= watchOutside(this, (ev) => this._onOutside(ev))).on();
+    // A new width (or the web font loaded): the status pill is fitted again, in the next frame.
+    if (typeof ResizeObserver === "function") {
+      this._resize ??= new ResizeObserver((entries) => {
+        const w = Math.round(entries.at(-1).contentRect.width);
+        if (w === this._fitWidth) return;
+        this._fitWidth = w;
+        cancelAnimationFrame(this._fitFrame);
+        this._fitFrame = requestAnimationFrame(() => this._fitPill());
+      });
+      this._resize.observe(this);
+    }
+    document.fonts?.ready?.then(() => this._fitPill());
     // Back on the page after leaving it: rendered again in its default state.
     this._update?.();
     // Reattached with the popup still open (view switch, editor): Escape keeps closing it.
@@ -2766,9 +3064,44 @@ class MowerBase extends HTMLElement {
     }, 60000);
   }
 
+  // The status pill goes right after the title only when the whole title and the whole label fit there; otherwise it
+  // takes a line of its own under the subtitle (.titles.below, the subtitle kept to one line). In the banner, when the
+  // title, the subtitle and the pill do not fit above the lawn strip, or when the label is wider than the line, the
+  // pill keeps its dot only (.titles.dot-only, back beside the title when the dot fits there). Measured after render
+  // (fractional pixels), so that it holds in every language.
+  _fitPill() {
+    for (const t of this.shadowRoot?.querySelectorAll?.(".titles") || []) {
+      const chip = t.querySelector(".trow > .chip");
+      if (!chip?.getBoundingClientRect) continue;
+      t.classList.remove("below", "dot-only");
+      const row = chip.parentElement;
+      const name = row.querySelector(".name");
+      const fits = () => {
+        const shown = name && getComputedStyle(name).display !== "none";
+        const title = shown ? textWidth(name) + (parseFloat(getComputedStyle(row).columnGap) || 0) : 0;
+        return title + chip.getBoundingClientRect().width <= row.getBoundingClientRect().width + 0.5;
+      };
+      if (fits()) continue;
+      t.classList.add("below");
+      for (const sub of t.querySelectorAll(".sub, .state")) sub.title = sub.scrollWidth > sub.clientWidth ? sub.textContent.trim() : "";
+      const banner = t.closest(".banner");
+      const text = chip.querySelector(".chip-text");
+      const tb = t.getBoundingClientRect();
+      const bb = banner?.getBoundingClientRect();
+      const ground = banner ? parseFloat(getComputedStyle(banner).getPropertyValue("--g")) || 0 : 0;
+      const tall = !!bb && (tb.top < bb.top - 0.5 || tb.bottom > bb.bottom - ground + 0.5);
+      if (!tall && !(text && text.scrollWidth > text.clientWidth + 0.5)) continue;
+      t.classList.add("dot-only");
+      t.classList.remove("below");
+      if (!fits()) t.classList.add("below");
+    }
+  }
+
   disconnectedCallback() {
     clearInterval(this._tick);
     this._tick = null;
+    this._resize?.disconnect();
+    this._fitWidth = null;
     this._onOutsideWatch?.off();
     this._pressing = false;
     window.removeEventListener("pointerup", this._onPressEnd, true);
@@ -2833,6 +3166,7 @@ class MowerBase extends HTMLElement {
     const kept = this._confirm || this._byPointer ? null : this._focusedSpot();
     this._html = html;
     this.shadowRoot.innerHTML = html;
+    this._fitPill();
     this._placeImages();
     this._placeCamera();
     if (kept) this._restoreFocus(kept);
@@ -3148,36 +3482,97 @@ class MowerBase extends HTMLElement {
     const img = this._config.image;
     if (img === "none") return null;
     if (img && img !== "auto") return img;
-    return svgUri(mowerSvg(brandOf(dev), activityOf(status?.state, this._charging(dev), this._raining(dev))));
+    return svgUri(mowerSvg(brandOf(dev), this._activity(dev, status)));
   }
 
-  // Icon of the kind of device, tinted with the brand color, with the logo of the integration's brand as a badge,
+  _activity(dev, status) {
+    return activityOf(status?.state, this._charging(dev), this._raining(dev));
+  }
+
+  // The illustrated header is shown unless `illustration: false`.
+  _illustrated() {
+    return this._config.illustration !== false;
+  }
+
+  // The mower standing on the header's lawn (opens the lawn_mower entity): the drawn picture cropped to the mower,
+  // the given image, or nothing with image: none.
+  _bannerPicture(dev, status) {
+    const img = this._config.image;
+    if (img === "none") return "";
+    const custom = img && img !== "auto";
+    const brand = brandOf(dev);
+    const activity = this._activity(dev, status);
+    const src = custom ? img : svgUri(bannerMowerSvg(brand, activity));
+    const kind = custom ? "custom" : bannerCrop(brand, activity);
+    return `<div class="picture clickable ${kind}" role="button" tabindex="0" aria-label="${esc(this._config.title || dev.name || "")}" data-entity="${esc(dev.mower)}">${imgTag(src, 'alt=""')}</div>`;
+  }
+
+  // Status class of the header icon: working, charging, waiting, error, or resting (idle, docked without charging).
+  _iconClass(dev, status) {
+    const cls = statusClass(status?.state);
+    if (cls === "ok") return this._charging(dev) ? "ok" : "idle";
+    return cls;
+  }
+
+  // Icon of the kind of device, coloured by the status, with the logo of the integration's brand as a badge,
   // linking to its site. Unknown integration: the icon alone.
-  _logo(dev) {
+  _logo(dev, status) {
     const b = brandFor(dev);
     const icon = svgIcon(ICONS.mower, "type");
-    if (!b.logo) return `<span class="type-icon">${icon}</span>`;
-    return `<a class="logo-link type-icon" href="${b.site}" target="_blank" rel="noopener noreferrer" title="${esc(b.name)}">${imgTag(b.logo, `class="logo" alt="${esc(b.name)}"`)}${icon}</a>`;
+    const cls = this._iconClass(dev, status);
+    if (!b.logo) return `<span class="type-icon ${cls}">${icon}</span>`;
+    return `<a class="logo-link type-icon ${cls}" href="${b.site}" target="_blank" rel="noopener noreferrer" title="${esc(b.name)}">${imgTag(b.logo, `class="logo" alt="${esc(b.name)}"`)}${icon}</a>`;
+  }
+
+  // Status pill: the same colour as the header icon (resting docked grey, charging green…).
+  _statusChip(dev, status) {
+    return status
+      ? `<span class="chip clickable ${this._iconClass(dev, status)}" role="button" tabindex="0" data-entity="${esc(status.entity)}" title="${esc(status.text)}" aria-label="${esc(
+          status.text,
+        )}"><span class="dot"></span><span class="chip-text">${esc(status.text)}</span></span>`
+      : "";
+  }
+
+  // The illustrated header: the garden, the mower on its lawn strip, and on the sky the icon, the name, the status
+  // with the battery level, and `sub` (the full card: the next start).
+  _banner(dev, status, sub) {
+    const c = this._config;
+    const { v } = this._batteryLevel(this._battery(dev));
+    // The battery level under the name, unless the body shows it big (full card, expanded mini card).
+    const pct = v === null || v === undefined || this._heroInBody() ? "" : `<span class="batt-pct">${Math.round(v)} %</span>`;
+    return `
+      <div class="banner${isNight(this._hass, c) ? " night" : ""}${this._zoomButton() ? " zoomable" : ""}">
+        ${gardenSvg(this._uid)}<div class="mc-ground" aria-hidden="true"></div>
+        ${this._bannerPicture(dev, status)}
+        <div class="htext">
+          ${this._logo(dev, status)}
+          <div class="titles">
+            <div class="trow"><div class="name">${esc(c.title || dev.name)}</div>${this._statusChip(dev, status)}</div>
+            ${pct ? `<div class="state">${pct}</div>` : ""}
+            ${sub ? `<div class="sub">${esc(sub)}</div>` : ""}
+          </div>
+        </div>
+        ${this._zoomButton()}
+      </div>`;
   }
 
   _header(dev, status, sub) {
+    if (this._illustrated()) return this._banner(dev, status, sub);
     const c = this._config;
     return `
       <div class="header">
-        ${this._logo(dev)}
+        ${this._logo(dev, status)}
         <div class="titles">
-          <div class="name">${esc(c.title || dev.name)}</div>
+          <div class="trow"><div class="name">${esc(c.title || dev.name)}</div>${this._statusChip(dev, status)}</div>
           ${sub ? `<div class="sub">${esc(sub)}</div>` : ""}
         </div>
-        ${
-          status
-            ? `<span class="chip clickable ${statusClass(status.state)}" role="button" tabindex="0" data-entity="${esc(status.entity)}" title="${esc(status.text)}" aria-label="${esc(
-                status.text,
-              )}"><span class="dot"></span><span class="chip-text">${esc(status.text)}</span></span>`
-            : ""
-        }
         ${this._zoomButton()}
       </div>`;
+  }
+
+  // Whether the body shows the battery level big: always on the full card, only expanded on the mini card.
+  _heroInBody() {
+    return true;
   }
 
   // Detail button at the far right of the header (mini card only).
@@ -3381,7 +3776,7 @@ class MowerCard extends MowerBase {
     if (c.show_stats !== false) parts.push(this._stats(dev));
     if (c.show_camera !== false) parts.push(this._cameraSection(dev));
     if (this._showMap(status)) parts.push(this._map(dev));
-    return `<style>${BASE_STYLE}${FULL_STYLE}${accentStyle(dev, this._hass)}</style>
+    return `<style>${BASE_STYLE}${FULL_STYLE}${this._illustrated() ? BANNER_STYLE : ""}${accentStyle(dev, this._hass)}</style>
       <ha-card>
         ${this._header(dev, status, this._subtitle(dev))}
         <div class="content">${parts.filter(Boolean).join("")}</div>
@@ -3433,7 +3828,7 @@ class MowerCard extends MowerBase {
     }
 
     return `<div class="hero">
-      ${this._pictureBlock(dev, status)}
+      ${this._illustrated() ? "" : this._pictureBlock(dev, status)}
       <div class="info">
         ${
           batt
@@ -3741,6 +4136,10 @@ class MowerMiniCard extends MowerCard {
     if (ev.detail === 0) this.shadowRoot.querySelector(".zoom")?.focus({ preventScroll: true });
   }
 
+  _heroInBody() {
+    return !!this._zoomed;
+  }
+
   _render() {
     if (this._zoomed) return super._render();
     const { dev, error } = findDevice(this._hass, this._config);
@@ -3752,11 +4151,11 @@ class MowerMiniCard extends MowerCard {
     const lines = [this._errorLine(dev), this._rainLine(dev)];
     const sub = this._subtitle(dev);
     if (sub) lines.push(`<div class="line">${svgIcon(ICONS.clock)}<span>${esc(sub)}</span></div>`);
-    return `<style>${BASE_STYLE}${MINI_STYLE}${accentStyle(dev, this._hass)}</style>
+    return `<style>${BASE_STYLE}${MINI_STYLE}${this._illustrated() ? BANNER_STYLE : ""}${accentStyle(dev, this._hass)}</style>
       <ha-card>
         ${this._header(dev, status, "")}
         <div class="content">
-          ${this._pictureBlock(dev, status)}
+          ${this._illustrated() ? "" : this._pictureBlock(dev, status)}
           <div class="info">
             ${
               batt
@@ -3907,6 +4306,7 @@ class MowerEditorBase extends HTMLElement {
 class MowerCardEditor extends MowerEditorBase {
   static get toggles() {
     return [
+      ["illustration", true],
       ["show_title", true],
       ["show_subtitle", true],
       ["show_controls", true],
@@ -3920,11 +4320,20 @@ class MowerCardEditor extends MowerEditorBase {
   }
 
   static get selects() {
-    return { show_map: "mowing", collapsed: DEFAULT_COLLAPSED };
+    return { illustration_theme: "auto", show_map: "mowing", collapsed: DEFAULT_COLLAPSED };
   }
 
   static extraFields(tr) {
     return [
+      {
+        name: "illustration_theme",
+        selector: {
+          select: {
+            mode: "dropdown",
+            options: ["auto", "day", "night"].map((v) => ({ value: v, label: tr(`theme_${v}`) })),
+          },
+        },
+      },
       {
         name: "show_map",
         selector: {

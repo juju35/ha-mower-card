@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.5.0 - 2026-11-17
+
+### Features
+- **Illustrated header** on the full and mini cards (90 px): a garden under a day or night sky, with the card's own drawn mower (brand colours, same model choice and animations as before) on a 10 px lawn strip running edge to edge, at its charging station while docked, charging or returning, out on the lawn while mowing, in error or waiting for the rain. The icon, the name, the status with the battery level (and the next start on the full card) sit on the sky; the brand logo stays as a badge on the icon. The picture moves from beside the battery into the header.
+- **Night sky** while `sun.sun` is below the horizon or with Home Assistant's dark theme, forced with `illustration_theme: day | night`; `illustration: false` brings back the classic header. Both options are in the visual editor of both cards. Animations stop with the system's reduced-motion setting.
+- **Status colour of the header icon**, in both headers and both cards: working (mowing, returning) in the state colour (Home Assistant's lawn mower colour, else the brand accent), charging green, waiting (paused, rain) amber, error red, resting grey.
+- **Status pill in the illustrated header**: the coloured dot and the status sit right after the name, in the header icon's colour, the battery level on the line below; the pill stays on the title row only when the whole name and its whole label fit there (the name is never cut for it), else it takes a line of its own under the subtitle (kept to one line); when even that does not fit in the header, and on cards 200 px wide or less, only its dot stays (the status in its tooltip). Measured on the rendered header, so it holds in every language, in both headers. The mini card's detail button is a small frosted round button in the banner's top right corner (in the card's corner with the classic header).
+
+### Fixes
+- `show_title: false` hides the title again in the illustrated header, where it sits in the title row with the status pill.
+- Night picture with the dark theme even while the sun is up (`illustration_theme: auto`): the header is night when `sun.sun` is below the horizon or Home Assistant's theme is dark; `day` / `night` still force it.
+- No repeated battery level: where the body shows the battery level big (full card, expanded mini card), the illustrated header no longer repeats it under the name and keeps the next start (else the last completed session); the compact mini card keeps the level in its header.
+
 ## 1.4.2 - 2026-11-14
 
 ### Fixes

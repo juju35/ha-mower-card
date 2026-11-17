@@ -42,7 +42,8 @@ The cards work on top of the integrations you already use — [Husqvarna Automow
 - Two cards: a full **Mower Card** (`custom:mower-card`) and a compact **Mower Mini Card** (`custom:mower-mini-card`)
 - Any robot lawn mower exposed as a `lawn_mower` entity, several devices supported; the other devices of the same integrations (Ecovacs vacuums, Gardena valves…) are skipped
 - Drawn mower picture in the brand's colors, animated by what the mower is doing (mowing, returning to the station, charging, error, rain delay), or your own picture
-- Header icon of the robot mower with the brand logo as a badge, opening the brand's site, and buttons in the brand's color, readable in the light and dark themes
+- Illustrated, animated header: the mower in the garden, on its lawn strip or at its charging station depending on what it is doing, under a day or night sky (night after sunset or with a dark theme, or forced with `illustration_theme`); `illustration: false` brings back the classic header
+- Header icon of the robot mower, coloured by the status (working, charging, waiting, error, resting), with the brand logo as a badge, opening the brand's site, and buttons in the brand's color, readable in the light and dark themes
 - Battery (sensor, or the mower's `battery_level` attribute) with the charging bolt, status, next scheduled start or last completed session, progress, time left and area of the current session
 - Mower settings as tags: work area or zone, mode, cutting height, headlights, schedule on or off; why an Automower stays parked (week schedule, frost, daily limit…)
 - Errors (error sensor, alert, stuck), rain detected and rain delay remaining
@@ -140,6 +141,8 @@ type: custom:mower-card
 device: Automower 430X NERA   # device name (as shown in Home Assistant) or device id
 title: Garden mower           # optional, defaults to the device name
 image: auto                   # auto (drawn, brand colors) | none | URL of your own picture
+illustration: true            # illustrated header (false: classic header)
+illustration_theme: auto      # auto (sun below the horizon or dark theme) | day | night
 show_controls: true
 show_settings: true           # work area, mode, cutting height, headlights, schedule tags
 show_actions: true
@@ -172,6 +175,8 @@ zoom: true                    # detail button at the top right
 | `show_title` | both | `true` | Show the title in the header (e.g. `false` under a section heading of your own) |
 | `show_subtitle` | both | `true` | Show the subtitle under the title |
 | `image` | both | `auto` | Device picture: `auto` (drawn in the brand's colors, animated), `none`, or the URL of your own picture (e.g. `/local/my-mower.png`) |
+| `illustration` | both | `true` | Illustrated header: the garden with the mower (its picture, see `image`) on a lawn strip, the icon, the name, the status and the battery on the sky. `false`: the classic header, with the picture beside the battery |
+| `illustration_theme` | both | `auto` | Sky of the illustrated header: `auto` (night while `sun.sun` is below the horizon or with Home Assistant's dark theme, even with the sun up), `day` or `night` |
 | `show_controls` | both | `true` | Start / pause, stop and dock buttons, action buttons, option toggles and maintenance reset buttons |
 | `zoom` | mini | `true` | Detail button at the top right of the mini card: it shows the full card's content (with the same options, so `show_map`, `collapsed`, `map_entity`… can be set on the mini card too, in its visual editor as well) and switches back to the compact view; a click outside the card also brings the compact view back. `false` removes the button |
 | `show_settings` | both | `true` | Mower settings tags: work area or zone, mode, cutting height, headlights, schedule on or off |
