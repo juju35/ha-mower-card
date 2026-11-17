@@ -43,7 +43,7 @@ test("the section titles are buttons that tell whether they are unfolded, the to
 
 test("the picture and the status chip, which have no text of their own, get a name", () => {
   const html = newCard().shadowRoot.innerHTML;
-  assert.match(html, /<div class="picture clickable" role="button" tabindex="0" aria-label="GOAT G1" data-entity="lawn_mower\.goat">/);
+  assert.match(html, /<div class="picture clickable station" role="button" tabindex="0" aria-label="GOAT G1" data-entity="lawn_mower\.goat">/);
   assert.match(html, /class="chip clickable ok"[^>]*aria-label="Docked"/);
   assert.match(html, /<img alt="Map" data-map="image.goat_carte">/);
 });
