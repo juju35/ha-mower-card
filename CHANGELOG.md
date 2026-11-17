@@ -9,6 +9,7 @@
 - **Status pill in the illustrated header**: the coloured dot and the status sit right after the name, in the header icon's colour, the battery level on the line below; the pill stays on the title row only when the whole name and its whole label fit there (the name is never cut for it), else it takes a line of its own under the subtitle (kept to one line); when even that does not fit in the header, and on cards 200 px wide or less, only its dot stays (the status in its tooltip). Measured on the rendered header, so it holds in every language, in both headers. The mini card's detail button is a small frosted round button in the banner's top right corner (in the card's corner with the classic header).
 
 ### Fixes
+- `show_title: false` hides the title again in the illustrated header, where it sits in the title row with the status pill.
 - Night picture with the dark theme even while the sun is up (`illustration_theme: auto`): the header is night when `sun.sun` is below the horizon or Home Assistant's theme is dark; `day` / `night` still force it.
 - No repeated battery level: where the body shows the battery level big (full card, expanded mini card), the illustrated header no longer repeats it under the name and keeps the next start (else the last completed session); the compact mini card keeps the level in its header.
 

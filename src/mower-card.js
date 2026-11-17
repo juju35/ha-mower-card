@@ -2708,7 +2708,7 @@ const BASE_STYLE = `
   /* The title takes the room the chip leaves (flex-basis 0: a long name does not push the chip into its ellipsis)
      and keeps about four characters and its ellipsis; the chip shrinks only when even that does not fit. */
   .titles { flex: 1 1 0; min-width: 5ch; font-size: 16px; }
-  :host([hide-title]) .titles > .name, :host([hide-subtitle]) .titles > .sub { display: none; }
+  :host([hide-title]) .titles .name, :host([hide-subtitle]) .titles > .sub { display: none; }
   .name { font-size: 16px; font-weight: 500; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .sub { font-size: 12px; color: var(--secondary-text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .warning { padding: 16px; color: color-mix(in srgb, var(--mc-warn) 50%, var(--primary-text-color)); }
