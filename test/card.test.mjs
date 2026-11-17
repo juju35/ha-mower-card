@@ -419,7 +419,8 @@ test("the illustrated header: garden, lawn strip, mower cropped to its state, st
   assert.match(html, /class="mc-scene"/);
   assert.match(html, /class="mc-ground"/);
   assert.match(html, /class="picture clickable station"[^>]*data-entity="lawn_mower\.tondeuse"/, "docked: the mower at its station");
-  assert.match(html, /class="state"><span class="chip clickable ok"[^>]*>.*Docked.*· 78 %/);
+  assert.match(html, /class="trow"><div class="name">[^<]+<\/div><span class="chip clickable ok"[^>]*>.*Docked.*<\/span><\/div>/, "the status pill right after the name");
+  assert.match(html, /class="state"><span class="batt-pct">78 %<\/span>/, "the battery level under the name, without the status again");
   assert.doesNotMatch(html, /class="hero">\s*<div class="picture/, "the picture moved to the header");
   const mow = newCard(makeHass(withOverrides(mowing))).shadowRoot.innerHTML;
   assert.match(mow, /class="picture clickable lawn"/, "mowing: the mower on the lawn");

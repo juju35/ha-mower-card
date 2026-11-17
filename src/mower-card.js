@@ -2672,7 +2672,7 @@ const BASE_STYLE = `
              one) so that it reads at 4.5:1 at least; dots, bars and icons keep the plain color. */
           --mc-accent-text: color-mix(in srgb, var(--mc-accent) 50%, var(--primary-text-color)); }
   /* Container queries below follow the width the card is given (Sections view columns, mini card). */
-  ha-card { overflow: hidden; container-type: inline-size; }
+  ha-card { overflow: hidden; container: mc-card / inline-size; }
   /* A size container has no width of its own content: in a parent that sizes to its content the card would fall to
      its borders. This empty, zero-height grid gives the card a natural (max-content) width without any minimum. */
   :host { display: block; min-width: 0; --mc-natural-width: 360px; }
@@ -2734,8 +2734,11 @@ const BASE_STYLE = `
   .zoom .icon { width: 16px; height: 16px; }
   .zoom:hover { background: color-mix(in srgb, var(--mc-idle) 16%, transparent); color: var(--primary-text-color); }
   .zoom:focus-visible { outline: 2px solid var(--primary-color, var(--mc-accent)); outline-offset: 1px; }
+  /* Classic header: the detail button in the card's top right corner, out of the title row. */
+  .header:has(> .zoom) { position: relative; padding-right: 44px; }
+  .header > .zoom { position: absolute; top: 12px; right: 12px; margin: 0; box-shadow: inset 0 0 0 1px var(--divider-color, rgba(127,127,127,.3)); }
   /* Narrow card: the status chip keeps only its colored dot (its text stays in title and aria-label). */
-  @container (max-width: 230px) {
+  @container mc-card (max-width: 230px) {
     .chip { padding: 4px; flex: none; }
     .chip-text { display: none; }
   }
@@ -2790,29 +2793,49 @@ const BANNER_STYLE = `
   .banner .type-icon.active { --ic: var(--state-lawn_mower-mowing-color, var(--mc-accent-day)); }
   .banner.night .type-icon.active { --ic: var(--state-lawn_mower-mowing-color, var(--mc-accent-night)); }
   .banner .type-icon .logo { box-shadow: 0 0 0 1px rgba(13,42,69,.16), 0 1px 3px rgba(13,42,69,.18); background: #fff; }
-  .banner .titles { flex: 1 1 auto; display: flex; flex-direction: column; gap: 1px; }
+  .banner .titles { flex: 1 1 auto; display: flex; flex-direction: column; gap: 1px; container: mc-titles / inline-size; }
   .banner .name { font-size: 16px; }
+  /* Title row: the name, then the status pill right after it (the name gives way first, down to about four
+     characters); on a narrow card the pill gets a line of its own under the subtitle (see below). */
+  .banner .trow { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .banner .trow .name { flex: 0 1 auto; min-width: 5ch; }
+  .banner .chip { flex: none; max-width: 51%; line-height: 16px;
+                  background: color-mix(in srgb, var(--c) 18%, rgba(255,255,255,.78)); color: color-mix(in srgb, var(--c) 45%, #0d2a45); }
+  .banner.night .chip { background: color-mix(in srgb, var(--c) 30%, rgba(8,18,38,.55)); color: color-mix(in srgb, var(--c) 35%, #ffffff); }
+  .banner .chip .dot { width: 7px; height: 7px; }
   .banner .state { display: flex; align-items: baseline; min-width: 0; font-size: 13px; color: #3b5b78; white-space: nowrap; }
   .banner.night .state { color: rgba(255,255,255,.78); }
-  .banner .state .chip { all: unset; cursor: pointer; flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .banner .state .chip .dot { display: none; }
-  .banner .state .chip .chip-text { display: inline; }
-  .banner .state .chip:focus-visible { outline: 2px solid var(--primary-color, var(--mc-accent)); outline-offset: 1px; border-radius: 3px; }
   .banner .state .batt-pct { flex: none; white-space: nowrap; }
   .banner .sub { font-size: 12px; color: #3b5b78; }
   .banner.night .sub { color: rgba(255,255,255,.7); }
-  .banner .zoom { position: absolute; top: 6px; right: 6px; margin: 0; z-index: 2; color: #10283f; background: rgba(255,255,255,.55); }
-  .banner.night .zoom { color: #fff; background: rgba(10,20,40,.45); }
-  .banner .zoom:hover { background: rgba(255,255,255,.8); }
-  .banner.night .zoom:hover { background: rgba(10,20,40,.65); }
+  /* Detail button (mini card): a small frosted round button in the banner's top right corner. */
+  .banner .zoom { position: absolute; top: 5px; right: 5px; margin: 0; z-index: 2; width: 24px; height: 24px; color: #33506b;
+                  background: rgba(255,255,255,.55); box-shadow: inset 0 0 0 1px rgba(255,255,255,.7); backdrop-filter: blur(4px); }
+  .banner.night .zoom { color: #fff; background: rgba(255,255,255,.12); box-shadow: inset 0 0 0 1px rgba(255,255,255,.2); }
+  .banner .zoom:hover { background: rgba(255,255,255,.75); color: #33506b; }
+  .banner.night .zoom:hover { background: rgba(255,255,255,.22); color: #fff; }
   /* Mini card: the mower steps aside for the detail button at the top right. */
-  .banner.zoomable .picture { right: 28px; }
+  .banner.zoomable .picture { right: 28px; max-width: calc(var(--scene-w) - 28px); }
   /* Narrow card: the garden narrows, the mower shrinks to the room left beside the text; on the narrowest (a mini
      card at 6 columns on a phone) only the sky and the lawn strip stay, the text takes the width. */
   @container (max-width: 300px) {
     .banner { --scene-w: 46%; }
     .banner .htext { left: 10px; gap: 8px; }
+  }
+  @container mc-card (max-width: 300px) {
     .banner .state .batt-pct { display: none; }
+  }
+  /* The pill takes a line of its own, under the subtitle, when the title row is too narrow for the name and the
+     whole pill (a narrow card, or the text squeezed by the garden). */
+  @container mc-titles (max-width: 190px) {
+    .banner .trow { display: contents; }
+    .banner .titles .name { order: 0; }
+    .banner .state { order: 1; } .banner .sub { order: 2; }
+    .banner .titles .chip { order: 3; align-self: flex-start; max-width: 100%; margin-top: 2px; }
+  }
+  @container mc-card (max-width: 200px) {
+    .banner .chip { padding: 0; width: 16px; height: 16px; justify-content: center; }
+    .banner .chip .chip-text { display: none; }
   }
   @container (max-width: 230px) {
     .banner .mc-scene, .banner .picture { display: none; }
@@ -3445,9 +3468,10 @@ class MowerBase extends HTMLElement {
     return `<a class="logo-link type-icon ${cls}" href="${b.site}" target="_blank" rel="noopener noreferrer" title="${esc(b.name)}">${imgTag(b.logo, `class="logo" alt="${esc(b.name)}"`)}${icon}</a>`;
   }
 
-  _statusChip(status) {
+  // Status pill: the same colour as the header icon (resting docked grey, charging green…).
+  _statusChip(dev, status) {
     return status
-      ? `<span class="chip clickable ${statusClass(status.state)}" role="button" tabindex="0" data-entity="${esc(status.entity)}" title="${esc(status.text)}" aria-label="${esc(
+      ? `<span class="chip clickable ${this._iconClass(dev, status)}" role="button" tabindex="0" data-entity="${esc(status.entity)}" title="${esc(status.text)}" aria-label="${esc(
           status.text,
         )}"><span class="dot"></span><span class="chip-text">${esc(status.text)}</span></span>`
       : "";
@@ -3458,7 +3482,7 @@ class MowerBase extends HTMLElement {
   _banner(dev, status, sub) {
     const c = this._config;
     const { v } = this._batteryLevel(this._battery(dev));
-    const pct = v === null || v === undefined ? "" : `<span class="batt-pct">&nbsp;· ${Math.round(v)} %</span>`;
+    const pct = v === null || v === undefined ? "" : `<span class="batt-pct">${Math.round(v)} %</span>`;
     return `
       <div class="banner${isNight(this._hass, c) ? " night" : ""}${this._zoomButton() ? " zoomable" : ""}">
         ${gardenSvg(this._uid)}<div class="mc-ground" aria-hidden="true"></div>
@@ -3466,8 +3490,8 @@ class MowerBase extends HTMLElement {
         <div class="htext">
           ${this._logo(dev, status)}
           <div class="titles">
-            <div class="name">${esc(c.title || dev.name)}</div>
-            ${status ? `<div class="state">${this._statusChip(status)}${pct}</div>` : ""}
+            <div class="trow"><div class="name">${esc(c.title || dev.name)}</div>${this._statusChip(dev, status)}</div>
+            ${pct ? `<div class="state">${pct}</div>` : ""}
             ${sub ? `<div class="sub">${esc(sub)}</div>` : ""}
           </div>
         </div>
@@ -3485,7 +3509,7 @@ class MowerBase extends HTMLElement {
           <div class="name">${esc(c.title || dev.name)}</div>
           ${sub ? `<div class="sub">${esc(sub)}</div>` : ""}
         </div>
-        ${this._statusChip(status)}
+        ${this._statusChip(dev, status)}
         ${this._zoomButton()}
       </div>`;
   }
