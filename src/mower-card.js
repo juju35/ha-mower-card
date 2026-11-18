@@ -195,14 +195,12 @@ const gardenSvg = (uid) => `<svg class="mc-scene" viewBox="0 0 200 80" preserveA
     </g></g>
   </svg>`;
 
-// Night picture: forced by illustration_theme, else the sun below the horizon OR Home Assistant's dark mode (the dark
-// theme wins even while the sun is up; with no usable sun.sun the dark mode alone decides).
+// Night picture: forced by illustration_theme, else Home Assistant's dark mode alone (a light theme keeps the day
+// picture after sunset).
 const isNight = (hass, config) => {
   const theme = config?.illustration_theme;
   if (theme === "night") return true;
   if (theme === "day") return false;
-  const sun = hass?.states?.["sun.sun"];
-  if (sun && !["unknown", "unavailable", ""].includes(String(sun.state))) return sun.state === "below_horizon" || !!hass?.themes?.darkMode;
   return !!hass?.themes?.darkMode;
 };
 
@@ -247,7 +245,7 @@ const PLATFORMS = {
 const brandOf = (dev) => PLATFORMS[dev.platform] || "generic";
 const brandFor = (dev) => BRANDS[brandOf(dev)];
 // Accent of the device's brand for the current theme, overriding the default green of the shared styles.
-// The day / night shades are kept apart for the illustrated header, which can be night with a light theme (sunset).
+// The day / night shades are kept apart for the illustrated header, which can be forced to night with a light theme (illustration_theme).
 const accentStyle = (dev, hass) => {
   const a = brandFor(dev).accent;
   return `:host { --mc-accent: ${a[hass?.themes?.darkMode ? 1 : 0]}; --mc-accent-day: ${a[0]}; --mc-accent-night: ${a[1]}; }`;
@@ -442,7 +440,7 @@ const STRINGS = {
     image_none: "None",
     illustration: "Animated illustration",
     illustration_theme: "Illustration theme",
-    theme_auto: "Automatic (sun or dark theme)",
+    theme_auto: "Automatic (follows the theme)",
     theme_day: "Day",
     theme_night: "Night",
     show_controls: "Show control buttons",
@@ -535,7 +533,7 @@ const STRINGS = {
     image_none: "Aucune",
     illustration: "Illustration animée",
     illustration_theme: "Thème de l’illustration",
-    theme_auto: "Automatique (soleil ou thème sombre)",
+    theme_auto: "Automatique (suit le thème)",
     theme_day: "Jour",
     theme_night: "Nuit",
     show_controls: "Afficher les boutons de commande",
@@ -627,7 +625,7 @@ const STRINGS = {
     image_none: "Keins",
     illustration: "Animierte Illustration",
     illustration_theme: "Thema der Illustration",
-    theme_auto: "Automatisch (Sonne oder dunkles Design)",
+    theme_auto: "Automatisch (folgt dem Design)",
     theme_day: "Tag",
     theme_night: "Nacht",
     show_controls: "Bedienknöpfe anzeigen",
@@ -719,7 +717,7 @@ const STRINGS = {
     image_none: "Ninguna",
     illustration: "Ilustración animada",
     illustration_theme: "Tema de la ilustración",
-    theme_auto: "Automático (sol o tema oscuro)",
+    theme_auto: "Automático (sigue el tema)",
     theme_day: "Día",
     theme_night: "Noche",
     show_controls: "Mostrar botones de control",
@@ -811,7 +809,7 @@ const STRINGS = {
     image_none: "Нема",
     illustration: "Анимирана илустрација",
     illustration_theme: "Тема илустрације",
-    theme_auto: "Аутоматски (сунце или тамна тема)",
+    theme_auto: "Аутоматски (прати тему)",
     theme_day: "Дан",
     theme_night: "Ноћ",
     show_controls: "Прикажи контролне дугмиће",
@@ -903,7 +901,7 @@ const STRINGS = {
     image_none: "Nema",
     illustration: "Animirana ilustracija",
     illustration_theme: "Tema ilustracije",
-    theme_auto: "Automatski (sunce ili tamna tema)",
+    theme_auto: "Automatski (prati temu)",
     theme_day: "Dan",
     theme_night: "Noć",
     show_controls: "Prikaži kontrolne dugmiće",
@@ -995,7 +993,7 @@ const STRINGS = {
     image_none: "Nessuna",
     illustration: "Illustrazione animata",
     illustration_theme: "Tema dell’illustrazione",
-    theme_auto: "Automatico (sole o tema scuro)",
+    theme_auto: "Automatico (segue il tema)",
     theme_day: "Giorno",
     theme_night: "Notte",
     show_controls: "Mostra i pulsanti di controllo",
@@ -1087,7 +1085,7 @@ const STRINGS = {
     image_none: "Geen",
     illustration: "Geanimeerde illustratie",
     illustration_theme: "Thema van de illustratie",
-    theme_auto: "Automatisch (zon of donker thema)",
+    theme_auto: "Automatisch (volgt het thema)",
     theme_day: "Dag",
     theme_night: "Nacht",
     show_controls: "Bedieningsknoppen tonen",
@@ -1179,7 +1177,7 @@ const STRINGS = {
     image_none: "Nenhuma",
     illustration: "Ilustração animada",
     illustration_theme: "Tema da ilustração",
-    theme_auto: "Automático (sol ou tema escuro)",
+    theme_auto: "Automático (segue o tema)",
     theme_day: "Dia",
     theme_night: "Noite",
     show_controls: "Mostrar botões de controlo",
@@ -1271,7 +1269,7 @@ const STRINGS = {
     image_none: "Brak",
     illustration: "Animowana ilustracja",
     illustration_theme: "Motyw ilustracji",
-    theme_auto: "Automatycznie (słońce lub ciemny motyw)",
+    theme_auto: "Automatycznie (według motywu)",
     theme_day: "Dzień",
     theme_night: "Noc",
     show_controls: "Pokaż przyciski sterowania",
@@ -1363,7 +1361,7 @@ const STRINGS = {
     image_none: "Niciuna",
     illustration: "Ilustrație animată",
     illustration_theme: "Tema ilustrației",
-    theme_auto: "Automat (soare sau temă întunecată)",
+    theme_auto: "Automat (urmează tema)",
     theme_day: "Zi",
     theme_night: "Noapte",
     show_controls: "Afișează butoanele de control",
@@ -1455,7 +1453,7 @@ const STRINGS = {
     image_none: "Intet",
     illustration: "Animeret illustration",
     illustration_theme: "Illustrationens tema",
-    theme_auto: "Automatisk (sol eller mørkt tema)",
+    theme_auto: "Automatisk (følger temaet)",
     theme_day: "Dag",
     theme_night: "Nat",
     show_controls: "Vis betjeningsknapper",
@@ -1547,7 +1545,7 @@ const STRINGS = {
     image_none: "Ingen",
     illustration: "Animerad illustration",
     illustration_theme: "Illustrationens tema",
-    theme_auto: "Automatiskt (sol eller mörkt tema)",
+    theme_auto: "Automatiskt (följer temat)",
     theme_day: "Dag",
     theme_night: "Natt",
     show_controls: "Visa kontrollknappar",
@@ -1639,7 +1637,7 @@ const STRINGS = {
     image_none: "Без",
     illustration: "Анимирана илюстрация",
     illustration_theme: "Тема на илюстрацията",
-    theme_auto: "Автоматично (слънце или тъмна тема)",
+    theme_auto: "Автоматично (следва темата)",
     theme_day: "Ден",
     theme_night: "Нощ",
     show_controls: "Показване на бутоните за управление",
@@ -1731,7 +1729,7 @@ const STRINGS = {
     image_none: "Нет",
     illustration: "Анимированная иллюстрация",
     illustration_theme: "Тема иллюстрации",
-    theme_auto: "Автоматически (солнце или тёмная тема)",
+    theme_auto: "Автоматически (следует теме)",
     theme_day: "День",
     theme_night: "Ночь",
     show_controls: "Показывать кнопки управления",
@@ -1823,7 +1821,7 @@ const STRINGS = {
     image_none: "Немає",
     illustration: "Анімована ілюстрація",
     illustration_theme: "Тема ілюстрації",
-    theme_auto: "Автоматично (сонце або темна тема)",
+    theme_auto: "Автоматично (за темою)",
     theme_day: "День",
     theme_night: "Ніч",
     show_controls: "Показувати кнопки керування",
@@ -1915,7 +1913,7 @@ const STRINGS = {
     image_none: "Nincs",
     illustration: "Animált illusztráció",
     illustration_theme: "Az illusztráció témája",
-    theme_auto: "Automatikus (nap vagy sötét téma)",
+    theme_auto: "Automatikus (a témát követi)",
     theme_day: "Nappal",
     theme_night: "Éjszaka",
     show_controls: "Vezérlőgombok megjelenítése",
@@ -2007,7 +2005,7 @@ const STRINGS = {
     image_none: "Žiadny",
     illustration: "Animovaná ilustrácia",
     illustration_theme: "Téma ilustrácie",
-    theme_auto: "Automaticky (slnko alebo tmavá téma)",
+    theme_auto: "Automaticky (podľa témy)",
     theme_day: "Deň",
     theme_night: "Noc",
     show_controls: "Zobraziť ovládacie tlačidlá",
@@ -2099,7 +2097,7 @@ const STRINGS = {
     image_none: "Žádný",
     illustration: "Animovaná ilustrace",
     illustration_theme: "Motiv ilustrace",
-    theme_auto: "Automaticky (slunce nebo tmavý motiv)",
+    theme_auto: "Automaticky (podle motivu)",
     theme_day: "Den",
     theme_night: "Noc",
     show_controls: "Zobrazit ovládací tlačítka",
@@ -2191,7 +2189,7 @@ const STRINGS = {
     image_none: "Brez",
     illustration: "Animirana ilustracija",
     illustration_theme: "Tema ilustracije",
-    theme_auto: "Samodejno (sonce ali temna tema)",
+    theme_auto: "Samodejno (sledi temi)",
     theme_day: "Dan",
     theme_night: "Noč",
     show_controls: "Prikaži gumbe za upravljanje",
@@ -2283,7 +2281,7 @@ const STRINGS = {
     image_none: "Nav",
     illustration: "Animēta ilustrācija",
     illustration_theme: "Ilustrācijas motīvs",
-    theme_auto: "Automātiski (saule vai tumšā tēma)",
+    theme_auto: "Automātiski (pēc tēmas)",
     theme_day: "Diena",
     theme_night: "Nakts",
     show_controls: "Rādīt vadības pogas",
@@ -2375,7 +2373,7 @@ const STRINGS = {
     image_none: "Καμία",
     illustration: "Κινούμενη εικονογράφηση",
     illustration_theme: "Θέμα εικονογράφησης",
-    theme_auto: "Αυτόματα (ήλιος ή σκοτεινό θέμα)",
+    theme_auto: "Αυτόματα (ακολουθεί το θέμα)",
     theme_day: "Ημέρα",
     theme_night: "Νύχτα",
     show_controls: "Εμφάνιση κουμπιών ελέγχου",
@@ -3015,7 +3013,7 @@ class MowerBase extends HTMLElement {
     const { dev } = findDevice(h, this._config);
     if (!dev) return null;
     const ids = [dev.mower, ...Object.values(dev.entities), ...Object.values(dev.extra).flat(), this._config.map_entity, this._config.camera_entity];
-    return [h.entities, h.devices, h.language, h.locale, h.localize, h.formatEntityState, h.themes?.darkMode, h.states["sun.sun"]?.state, this._subtitle(dev), ...ids.map((id) => h.states[id])];
+    return [h.entities, h.devices, h.language, h.locale, h.localize, h.formatEntityState, h.themes?.darkMode, this._subtitle(dev), ...ids.map((id) => h.states[id])];
   }
 
   get hass() {

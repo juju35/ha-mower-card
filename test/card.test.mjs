@@ -451,10 +451,11 @@ test("the header icon's colour follows the status", () => {
   assert.match(newCard(makeHass(), { illustration: false }).shadowRoot.innerHTML, /type-icon ok"/, "classic header too");
 });
 
-test("night follows illustration_theme, else the sun below the horizon or the dark theme; each card has its own ids", () => {
+test("night follows illustration_theme, else the dark theme alone; each card has its own ids", () => {
   assert.equal(mc.isNight({}, { illustration_theme: "night" }), true);
   assert.equal(mc.isNight({ states: { "sun.sun": { state: "below_horizon" } } }, { illustration_theme: "day" }), false);
-  assert.equal(mc.isNight({ states: { "sun.sun": { state: "below_horizon" } } }, {}), true);
+  assert.equal(mc.isNight({ states: { "sun.sun": { state: "below_horizon" } } }, {}), false, "light theme after sunset: day");
+  assert.equal(mc.isNight({ states: { "sun.sun": { state: "below_horizon" } }, themes: { darkMode: true } }, {}), true);
   assert.equal(mc.isNight({ states: { "sun.sun": { state: "above_horizon" } }, themes: { darkMode: true } }, {}), true);
   assert.equal(mc.isNight({ states: { "sun.sun": { state: "above_horizon" } }, themes: { darkMode: false } }, {}), false);
   assert.equal(mc.isNight({ states: { "sun.sun": { state: "above_horizon" } }, themes: { darkMode: true } }, { illustration_theme: "day" }), false);
