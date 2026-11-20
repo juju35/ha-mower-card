@@ -2980,7 +2980,8 @@ class MowerBase extends HTMLElement {
     this._onPressEnd = () => {
       window.removeEventListener("pointerup", this._onPressEnd, true);
       window.removeEventListener("pointercancel", this._onPressEnd, true);
-      setTimeout(() => {
+      clearTimeout(this._pressTimer);
+      this._pressTimer = setTimeout(() => {
         if (!this._pressing) return;
         this._pressing = false;
         if (this._dirty) {
@@ -3110,6 +3111,8 @@ class MowerBase extends HTMLElement {
     this._fitWidth = null;
     this._onOutsideWatch?.off();
     this._pressing = false;
+    clearTimeout(this._pressTimer);
+    if (this._fitFrame) cancelAnimationFrame(this._fitFrame);
     window.removeEventListener("pointerup", this._onPressEnd, true);
     window.removeEventListener("pointercancel", this._onPressEnd, true);
     // Left (another dashboard view, a conditional card hidden): back to the default state, so that the card does
@@ -3355,7 +3358,7 @@ class MowerBase extends HTMLElement {
     this._confirm = confirm;
     window.addEventListener("keydown", this._onKey);
     this._update();
-    this.shadowRoot.querySelector(".modal .primary")?.focus();
+    this.shadowRoot.querySelector(".modal .primary")?.focus({ preventScroll: true });
   }
 
   _closeConfirm() {

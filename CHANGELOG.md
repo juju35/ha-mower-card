@@ -4,9 +4,11 @@
 
 ### Fixes
 - Device detection: the brand of a mower (picture colours, logo, accent, entity keys) now comes from its `lawn_mower` entity. It came from the first entity of the device, which can belong to another integration that adds entities to devices (Battery Notes, for one): the mower then showed as a generic one.
+- Confirmation popup: focusing its button no longer scrolls the page; the timers left by a press and the status pill's pending measure are cleared when the card leaves the page.
 
 ### Maintenance
 - CI: Validate runs in a Debian 12 container with Chromium, so the browser tests (status pill placement) now run on every pull request instead of being skipped; a missing browser fails the job.
+- CI: the branch cleanup recognises the commits of the `juju35-screenshots` app.
 
 ## 1.5.2 - 2026-11-18
 
