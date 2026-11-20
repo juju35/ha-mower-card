@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.5.3 - 2026-11-20
+
+### Fixes
+- Device detection: the brand of a mower (picture colours, logo, accent, entity keys) now comes from its `lawn_mower` entity. It came from the first entity of the device, which can belong to another integration that adds entities to devices (Battery Notes, for one): the mower then showed as a generic one.
+
 ## 1.5.2 - 2026-11-18
 
 ### Fixes
