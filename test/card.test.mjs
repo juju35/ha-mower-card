@@ -47,6 +47,13 @@ test("every device with a lawn_mower entity is listed, whatever its integration,
   );
 });
 
+test("the brand of a device comes from its lawn_mower entity, not from another integration's entity on it", () => {
+  const extra = { "sensor.tondeuse_battery_type": { entity_id: "sensor.tondeuse_battery_type", platform: "battery_notes", device_id: entities["lawn_mower.tondeuse"].device_id } };
+  const { devices: list } = mc.resolve({ ...makeHass(), entities: { ...extra, ...entities } });
+  const dev = list.find((d) => d.mower === "lawn_mower.tondeuse");
+  assert.equal(dev.platform, "husqvarna_automower");
+});
+
 test("entities are keyed by their translation key, mapped per integration, or by the end of their id", () => {
   const { devices: list } = mc.resolve(makeHass());
   const by = Object.fromEntries(list.map((d) => [d.platform, d.entities]));
