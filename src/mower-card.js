@@ -2556,7 +2556,12 @@ const resolve = (hass) => {
     if (!e.device_id || e.hidden) continue;
     const domain = e.entity_id.split(".")[0];
     const item = byDevice.get(e.device_id) || { platform: e.platform, entities: {}, extra: {}, categories: {} };
-    if (domain === "lawn_mower") item.mower ??= e.entity_id;
+    // The brand comes from the lawn_mower entity: another integration may add its entities to the device (Battery
+    // Notes, a template…) and come first.
+    if (domain === "lawn_mower" && !item.mower) {
+      item.mower = e.entity_id;
+      item.platform = e.platform;
+    }
     const key = keyOf(e, domain);
     if (key && !(key in item.entities)) item.entities[key] = e.entity_id;
     (item.extra[domain] = item.extra[domain] || []).push(e.entity_id);
