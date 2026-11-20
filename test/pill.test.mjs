@@ -15,7 +15,11 @@ let chromium;
 try {
   ({ chromium } = await import("playwright"));
 } catch {}
-const browser = await chromium?.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}).catch(() => null);
+const browser = await chromium?.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {}).catch((err) => {
+  // In Validate (REQUIRE_BROWSER=1) the browser must start: a missing Chromium fails the job instead of skipping.
+  if (process.env.REQUIRE_BROWSER === "1") throw err;
+  return null;
+});
 
 const HA_CARD = `customElements.define("ha-card", class extends HTMLElement { constructor() { super();
   this.attachShadow({ mode: "open" }).innerHTML = "<style>:host{display:block;border:1px solid #ddd;overflow:hidden}</style><slot></slot>"; } });`;
