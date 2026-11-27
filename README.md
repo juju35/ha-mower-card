@@ -95,7 +95,7 @@ Click the button below to add the repository directly:
 
 [![Add to the Marketplace](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=juju35&repository=ha-mower-card&category=plugin)
 
-Then click **Install**, and reload your browser when the Marketplace asks you to.
+Then click **Install**, and reload your browser when the Marketplace asks you to. The resource is `/local/community/ha-mower-card/mower-card.js`.
 
 Or manually:
 
