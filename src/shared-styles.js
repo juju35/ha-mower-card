@@ -7,6 +7,7 @@ import { DEFAULT_COLLAPSED, FEATURE, ICONS, PENDING_MS, accentStyle, brandFor, b
 import { ago, esc, fmtDistance, fmtHours, fmtNum, hours, intlLocale, lang, num, pretty, statusClass, svgIcon, t, unitOf, valid } from "./helpers.js";
 import { cameraIds, findDevice, loadStream, mapIds, resolve, sameDeps } from "./registry-based-resolution.js";
 import { STRINGS } from "./i18n/strings.js";
+import { rcMorph } from "./in-place-redraw.js";
 
 export const BASE_STYLE = `
   :host { --mc-accent: #2e7d32; --mc-ok: var(--success-color, #43a047); --mc-warn: var(--warning-color, #ffa600);
@@ -513,7 +514,8 @@ export class MowerBase extends HTMLElement {
     // a click, it would draw the focus ring on the clicked element.
     const kept = this._confirm || this._byPointer ? null : this._focusedSpot();
     this._html = html;
-    this.shadowRoot.innerHTML = html;
+    // In place (see rcMorph): the nodes stay, so the card keeps its height, its animations and its focus.
+    rcMorph(this.shadowRoot, html);
     this._fitPill();
     this._placeImages();
     this._placeCamera();
@@ -536,13 +538,20 @@ export class MowerBase extends HTMLElement {
       return;
     }
     if (this._camNode) {
-      slot.prepend(this._camNode);
+      // Kept in place by the redraw (data-rc-own): moved only into a new slot, since a move reconnects the stream.
+      if (this._camNode.parentNode !== slot) slot.prepend(this._camNode);
+      // The markup draws the slot as loading: not once this camera's first frame came.
+      if (this._camLoaded && this._camLoaded === this._camNode.stateObj?.entity_id) slot.classList.remove("loading");
     } else if (customElements.get("ha-camera-stream")) {
       const stream = document.createElement("ha-camera-stream");
+      stream.setAttribute("data-rc-own", "");
       stream.muted = true;
       stream.fitMode = "cover";
       stream.aspectRatio = 16 / 9;
-      stream.addEventListener("load", () => this.shadowRoot.querySelector(".cam-view")?.classList.remove("loading"));
+      stream.addEventListener("load", () => {
+        this._camLoaded = stream.stateObj?.entity_id;
+        this.shadowRoot.querySelector(".cam-view")?.classList.remove("loading");
+      });
       slot.prepend(stream);
       this._camNode = stream;
     } else {
@@ -568,7 +577,10 @@ export class MowerBase extends HTMLElement {
     const obj = live ? st : undefined;
     // Older Home Assistant versions take hass; newer ones read it from the page and do not declare it.
     if (stream.constructor.elementProperties?.has?.("hass")) stream.hass = this._hass;
-    if (obj?.entity_id !== stream.stateObj?.entity_id) slot?.classList.toggle("loading", !!obj);
+    if (obj?.entity_id !== stream.stateObj?.entity_id) {
+      this._camLoaded = null;
+      slot?.classList.toggle("loading", !!obj);
+    }
     if (stream.stateObj !== obj) stream.stateObj = obj;
   }
 
