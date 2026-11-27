@@ -10,7 +10,7 @@ import { STRINGS } from "./i18n/strings.js";
 
 export const BASE_STYLE = `
   :host { --mc-accent: #2e7d32; --mc-ok: var(--success-color, #43a047); --mc-warn: var(--warning-color, #ffa600);
-          --mc-crit: var(--error-color, #db4437); --mc-idle: var(--disabled-text-color, #9e9e9e); --mc-active: var(--info-color, #039be5);
+          --mc-crit: var(--error-color, #db4437); --mc-idle: var(--secondary-text-color, #9e9e9e); --mc-active: var(--info-color, #039be5);
           /* Text in a state or brand color is mixed with the text color (darker on a light theme, lighter on a dark
              one) so that it reads at 4.5:1 at least; dots, bars and icons keep the plain color. */
           --mc-accent-text: color-mix(in srgb, var(--mc-accent) 50%, var(--primary-text-color)); }
